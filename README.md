@@ -37,7 +37,7 @@ for different studies.
 Due to high dependencies on the external packages of various versions, we strongly recommend to use
 the docker-image [docker](https://www.docker.com) to deploy ER installation.
 
-1. Install docker desktop on your system: https://www.docker.com/get-started
+1. Install docker engine on your system: https://docs.docker.com/engine/install/ubuntu/
 2. Follow docker post-installation steps: https://docs.docker.com/engine/install/linux-postinstall/
 2. Clone ER repository:
 
@@ -52,36 +52,13 @@ git checkout dev
 docker build --build-arg ER=dev -t er .
 ```
 
-4. Enjoy  _ROOT_, _Go4_, _AccDAQ_ and _ER_:
-
-* To run simulation in interactive session:
+4. Run _er_ container, compile updated sources, run simulation:
 
 ```
-docker run -v /home/vitaliy/er/macro/EXP1904_H7:/opt/run -w /opt/run -e DISPLAY=$DISPLAY -it er /bin/bash
-root -l -q create_passive_component.C
-root -l -q create_target_exp1904.C
-root -l -q sim_digi.C
-root -l sim_digi.root
-```
-where -v is used to map your host working directory '/home/vitaliy/er/macro/EXP1904_H7' and working 
-directory  '/opt/run' inside container; -w /opt/run - set working directory for interactive session;
--e DISPLAY=$DISPLAY is needed to forward gui from container to host machine; -it - to set interactive session.
-
-* To run macro in batch mode:
-
-```
-docker run -v /Users/vitaliy/er/macro/EXP1904_H7:/opt/run -w /opt/run  er root -l -b -q create_passive_component.C
-```
-
-5. _ER_ developing:
-
-Map _ER_ source directory on host machine and container to compile updated sources:
-
-```
-docker run --entrypoint /bin/bash -v /home/vitaliy/er:/opt/er -v /home/vitaliy/er/macro/EXP1904_H7:/opt/run -w /opt/run -e DISPLAY=$DISPLAY -it er
+docker run --entrypoint /bin/bash --net=host -v /home/vitaliy/er:/opt/er -v /home/vitaliy/er/macro/EXP1904_H7:/opt/run -w /opt/run -v /tmp/.X11-unix:/tmp/.X11-unix  -v $HOME/.Xauthority:/home/jovyan/.Xauthority:rw -e DISPLAY=$DISPLAY -it er
 cd /opt/er
 mkdir build
-cd /build
+cd build
 export SIMPATH=/opt/FairSoft/
 export FAIRROOTPATH=/opt/FairRoot/
 cmake ../ -DACCULINNA_GO4=/opt/accdaq/install/
@@ -91,6 +68,10 @@ source ./config.sh
 cd /opt/run/
 root -l sim_digi.C
 ```
+
+where -v is used to map your host working directory '/home/vitaliy/er/macro/EXP1904_H7' and working 
+directory  '/opt/run' inside container; -w /opt/run - set working directory for interactive session;
+-e DISPLAY=$DISPLAY is needed to forward gui from container to host machine; -it - to set interactive session.
 
 Redifinition of `entrypoint` is needed because `er/build/config.sh` may not exists in mapped volume.
 
