@@ -41,7 +41,11 @@ void ERTelescopeDigitizer::SetSiElossSigma(float sigma) {
 }
 //-------------------------------------------------------------------------------------------------
 void ERTelescopeDigitizer::SetCsIElossSigma(float sigma) {
-  fCsIElossModel = [sigma](float eloss) { return gRandom->Gaus(eloss, sigma);};
+  //fCsIElossModel = [sigma](float eloss) { return gRandom->Gaus(eloss, sigma);};
+  fCsIElossModel = [sigma](float eloss) { 
+	sigma = 0.021231*sqrt(eloss);
+	return gRandom->Gaus(eloss, sigma);
+  };
 }
 //-------------------------------------------------------------------------------------------------
 void ERTelescopeDigitizer::SetSiTimeSigma(float sigma) {
@@ -97,16 +101,22 @@ void ERTelescopeDigitizer::Exec(Option_t* opt) {
       calc_eloss_with_error = fSiElossModel;
       calc_time_with_error = fSiTimeModel;
     }
-    if (itPointBranches.first.Contains("CsI")) {
+    if (itPointBranches.first.Contains("CsI")) { // определяем какой у нас itPointBranches: кремний или CsI
       elossThreshold = fCsIElossThreshold;
       calc_eloss_with_error = fCsIElossModel;
       calc_time_with_error = fCsITimeModel;
     }
+    LOG(DEBUG) << "My out with itPointBranches " << itPointBranches.first.Data() << " size " << itPointBranches.second->GetEntriesFast() << FairLogger::endl;
+    //Sort points
     for (Int_t iPoint = 0; iPoint < itPointBranches.second->GetEntriesFast(); iPoint++){
       ERPoint* point = (ERPoint*)(itPointBranches.second->At(iPoint));
       sortedPoints[point->GetVolNb()].push_back(iPoint);
+      LOG(DEBUG) << "My out1 point->GetVolNb() " << point->GetVolNb() << FairLogger::endl; // point->GetVolNb() номер "канала"
     }
+
+    //loop over points in crysrall sortedPoints.first()
     for (const auto &itPoint : sortedPoints) {
+      LOG(DEBUG) << "My out2 itPoint.first " << itPoint.first << FairLogger::endl; // point->GetVolNb() номер "канала"
       Float_t   edep = 0.; //sum edep in strip
       Float_t   time = std::numeric_limits<float>::max(); // min time in strip
       for (const auto itPointsForCurrentVolume : itPoint.second) {
@@ -163,3 +173,4 @@ ERDigi* ERTelescopeDigitizer::AddDigi(Float_t edep, Double_t time, Int_t stripNb
 }
 //-------------------------------------------------------------------------------------------------
 ClassImp(ERTelescopeDigitizer)
+
