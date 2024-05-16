@@ -306,7 +306,7 @@ Bool_t ERDecayEXP1811::Stepping() {
       }   
       if (TString(run->GetMCEventHeader()->ClassName()).Contains("EREXP1811EventHeader")){   
         EREXP1811EventHeader* header = (EREXP1811EventHeader*)run->GetMCEventHeader();
-        header->SetData(curPos.Vect(), lv8He,  lv2H, *fLv3He, *fLv3H,  *fLv7H, *fLvn1, *fLvn2, *fLvn3, *fLvn4);
+        header->SetData(curPos.Vect(), lv8He,  lv2H, *fLv3He, *fLv3H,  *fLv7H, *fLvn1, *fLvn2, *fLvn3, *fLvn4, fTheta);
         header->SetTrigger(1);
       }
     }
@@ -353,6 +353,7 @@ void ERDecayEXP1811::ReactionPhaseGenerator(Double_t Ecm, Double_t h7Mass) {
   } else { 
     thetaCM = fADFunction->GetRandom(fThetaMin, fThetaMax)*TMath::DegToRad();
   }
+  fTheta = thetaCM;
   Double_t phi = gRandom->Uniform(0., 2. * TMath::Pi());
   TVector3 Pcmv;
   Pcmv.SetMagThetaPhi(Pcm, thetaCM, phi);
@@ -441,7 +442,7 @@ Double_t ERDecayEXP1811::ADEvaluate(Double_t *x, Double_t *p) {
 //-------------------------------------------------------------------------------------------------
 void ERDecayEXP1811::SetAngularDistribution(TString ADFile) {
   TString ADFilePath = gSystem->Getenv("VMCWORKDIR");
-  ADFilePath += "/input/" + ADFile;
+  ADFilePath =  ADFile;
   std::ifstream f;
   f.open(ADFilePath.Data());
   if (!f.is_open()) {
@@ -476,7 +477,7 @@ void ERDecayEXP1811::SetAngularDistribution(TString ADFile) {
   fThetaMax = angle[fADInput->GetN()-1];
   fADFunction = new TF1("angDistr", this, &ERDecayEXP1811::ADEvaluate, 
                          fThetaMin, fThetaMax, 0, "ERDecayEXP1811", "ADEvaluate");
-  fADFunction->Eval(1.);
+  // fADFunction->Eval(1.);
 }
 //-------------------------------------------------------------------------------------------------
 ClassImp(ERDecayEXP1811)

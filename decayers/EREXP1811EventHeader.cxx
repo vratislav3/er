@@ -10,7 +10,7 @@ void EREXP1811EventHeader::SetData(const TVector3& position, const TLorentzVecto
                                    const TLorentzVector& H3,
                                    const TLorentzVector& H7, const TLorentzVector& n1,
                                    const TLorentzVector& n2, const TLorentzVector& n3,
-                                   const TLorentzVector& n4) {
+                                   const TLorentzVector& n4, const Float_t& thetaCM) {
   fReactionPos = position;
   fHe8 = He8;
   fH2 = H2;
@@ -21,6 +21,7 @@ void EREXP1811EventHeader::SetData(const TVector3& position, const TLorentzVecto
   fn2 = n2;
   fn3 = n3;
   fn4 = n4;
+  fThetaCM = thetaCM;
 }
 // -------------------------------------------------------------------------
 void EREXP1811EventHeader::Clear() {
@@ -35,6 +36,7 @@ void EREXP1811EventHeader::Clear() {
   fn4.SetXYZM(0, 0, 0, 0);
   fTrigger = 0;
   fTriggerPriority = 0;
+  fThetaCM = 200;
 }
 // -------------------------------------------------------------------------
 

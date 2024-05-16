@@ -77,6 +77,7 @@ private:
   TLorentzVector *fLvn2; //!
   TLorentzVector *fLvn3; //!
   TLorentzVector *fLvn4; //!
+  Float_t fTheta; //!
 
   FairIon        *fIon3He;
   FairIon        *fUnstableIon7H;

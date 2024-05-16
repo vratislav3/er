@@ -18,6 +18,7 @@ private:
   TLorentzVector fn2;
   TLorentzVector fn3;
   TLorentzVector fn4;
+  Float_t fThetaCM;
   Int_t fTrigger = 0;
   Int_t fTriggerPriority = 0;
 public:
@@ -26,7 +27,8 @@ public:
                const TLorentzVector& H2, const TLorentzVector& He3,
                const TLorentzVector& H3, const TLorentzVector& H7,
                const TLorentzVector& n1, const TLorentzVector& n2,
-               const TLorentzVector& n3, const TLorentzVector& n4);
+               const TLorentzVector& n3, const TLorentzVector& n4,
+               const Float_t& thetaCM);
   void SetTrigger(Int_t trigger) { fTrigger = trigger; }
   
   Int_t GetTrigger() const {return fTrigger;}
@@ -40,6 +42,7 @@ public:
   TLorentzVector GetN2() const { return fn2; }
   TLorentzVector GetN3() const { return fn3; }
   TLorentzVector GetN4() const { return fn4; }
+  Float_t GetThetaCM() const {return fThetaCM;}
 
   void Clear();
 

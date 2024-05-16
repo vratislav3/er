@@ -42,9 +42,7 @@ void ERTelescopeDigitizer::SetSiElossSigma(float sigma) {
 //-------------------------------------------------------------------------------------------------
 void ERTelescopeDigitizer::SetCsIElossSigma(float sigma) {
   //fCsIElossModel = [sigma](float eloss) { return gRandom->Gaus(eloss, sigma);};
-  fCsIElossModel = [sigma](float eloss) { 
-	sigma = 0.021231*sqrt(eloss);
-	return gRandom->Gaus(eloss, sigma);
+  fCsIElossModel = [sigma](float eloss) { return gRandom->Gaus(eloss, 0.021231*sqrt(eloss));
   };
 }
 //-------------------------------------------------------------------------------------------------
