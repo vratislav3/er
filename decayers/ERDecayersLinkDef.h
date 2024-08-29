@@ -19,5 +19,6 @@
 #pragma link C++ class ERDecay10Heto8He+;	
 #pragma link C++ class ER10Heto8HeEventHeader+;
 #pragma link C++ class ERDecay8He4He4nTransferEventHeader+;
+#pragma link C++ class ERDecay8He4He4nTransfer+;
 
 #endif
