@@ -36,7 +36,7 @@ ERElasticScattering.cxx
 EREXP1811EventHeader.cxx
 ERDecay10Heto8He.cxx
 ER10Heto8HeEventHeader.cxx
-ERDecay8He4He4nTransferEventHeader.cxx
+# ERDecay8He4He4nTransferEventHeader.cxx
 ERDecay8He4He4nTransfer.cxx
 )
 

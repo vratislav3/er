@@ -11,6 +11,7 @@
 #pragma link C++ class EREventHeader+;
 #pragma link C++ class ERLi10EventHeader+;
 #pragma link C++ class ERLi10MCEventHeader+;
+#pragma link C++ class ERDecay8He4He4nTransferEventHeader+;
 
 #pragma link C++ class ERHe8EventHeader+;
 #pragma link C++ class ERRawEvent+;
