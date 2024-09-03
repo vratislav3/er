@@ -356,6 +356,9 @@ void ERDecay8He4He4nTransfer::FinishEvent()
 //-------------------------------------------------------------------------------------------------
 void ERDecay8He4He4nTransfer::ReactionPhaseGenerator(Double_t Ecm)
 {
+	//particle 1: 4He (m1, E1)
+	//particle 2: 8He (m2, E2)
+
 	Double_t m1 = G4IonTable::GetIonTable()->GetIon(2, 4)->GetPDGMass() * 1e-3;
 	Double_t m2 = G4IonTable::GetIonTable()->GetIon(2, 8)->GetPDGMass() * 1e-3;
 	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] m1: " << m1 << FairLogger::endl;
@@ -393,8 +396,8 @@ void ERDecay8He4He4nTransfer::ReactionPhaseGenerator(Double_t Ecm)
 
 	fLv8He->SetXYZM(0., 0., 0., 0.);
 	fLv4He->SetXYZM(0., 0., 0., 0.);
-	fLv8He->SetXYZM(Pcmv(0), Pcmv(1), Pcmv(2), m1);
-	fLv4He->SetXYZM(-Pcmv(0), -Pcmv(1), -Pcmv(2), m2);
+	fLv8He->SetXYZM(Pcmv(0), Pcmv(1), Pcmv(2), m2);
+	fLv4He->SetXYZM(-Pcmv(0), -Pcmv(1), -Pcmv(2), m1);
 }
 
 //-------------------------------------------------------------------------------------------------
