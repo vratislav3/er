@@ -40,43 +40,47 @@ void sim(Int_t events_count = 1000)
 	// Double_t targetD2Thickness = 0.6; // [cm] this parameter should coincide with target H2 thickness in /macro/geo/create_target_D2_geo.C
 
 	//---------------------Files-----------------------------------------------
-	TString outFile = "/opt/er/macro/1stDay2024/rootfiles/sim.root";
-	// "/mnt/data/exp2024/sim/sim_paral/sim_digi1.root";
-	TString parFile = "/opt/er/macro/1stDay2024/rootfiles/par.root";
-	// TString parFile = "/mnt/data/exp2024/sim/sim_paral/par1.root";
 	TString workDirPath = gSystem->Getenv("VMCWORKDIR");
+	TString outFile = workDirPath + "/macro/1stDay2024/rootfiles/sim.root";
+	TString parFile = workDirPath + "/macro/1stDay2024/rootfiles/par.root";
+	
+	//target
+	// TString targetGeoFileName = workDirPath + "/geometry/target.4He.gas.root";
+	TString targetGeoFileName = workDirPath + "/geometry/target.Vacuum.geo.root";
+
+	//detectors
 	// TString paramFileQTelescope = "/home/muzalevskii/work/macro/exp2024/sim/xml/QTelescopeParts.xml";
 	// TString paramFileBeamDet = "/home/muzalevskii/work/macro/exp2024/sim/xml/BeamDetParts.xml";
-	// TString targetGeoFileName = "/home/muzalevskii/work/macro/exp2024/sim/geo/target_exp1904.root";
-	TString targetGeoFileName = workDirPath + "/geometry/target.4He.gas.root";
 	// TString frameGeoFileName = "/home/muzalevskii/work/macro/exp2024/sim/geo/housingFrames.root";
 	// TString ndGeoFileName = "/home/muzalevskii/work/macro/exp2024/sim/geo/ND.geo.exp1904.root";
 
 	// -----   Timer   --------------------------------------------------------
 	TStopwatch timer;
 	timer.Start();
+	
 	//-------Set LOG verbosity  -----------------------------------------------
 	// FairLogger::GetLogger()->SetLogScreenLevel("FATAL");
-	FairLogger::GetLogger()->SetLogScreenLevel("DEBUG");
+	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG");
 	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG2");
-	// FairLogger::GetLogger()->SetLogScreenLevel("INFO");
+	FairLogger::GetLogger()->SetLogScreenLevel("INFO");
 	// FairLogger::GetLogger()->SetLogVerbosityLevel("VERYHIGH");
+	
 	// -----   Create simulation run   ----------------------------------------
 	ERRunSim *run = new ERRunSim();
-	/** Select transport engine
-	 * TGeant3
-	 * TGeant4exp1904_sim_digi.C
-	 **/
 	run->SetName("TGeant4");			// Transport engine
 	run->SetOutputFile(outFile.Data()); // Output file
+	
 	// ------------------------------------------------------------------------
 	// -----   Runtime database   ---------------------------------------------
 	FairRuntimeDb *rtdb = run->GetRuntimeDb();
+	
 	//-------- Set MC event header --------------------------------------------
 	ERDecay8He4He4nTransferEventHeader *decayMCheader = new ERDecay8He4He4nTransferEventHeader();
 	run->SetMCEventHeader(decayMCheader);
+	
 	// -----   Create media   -------------------------------------------------
 	run->SetMaterials("media.geo"); // Materials
+	
 	// -----   Create detectors  ----------------------------------------------
 	FairModule *cave = new ERCave("CAVE");
 	cave->SetGeometryFileName("cave.geo");
@@ -227,26 +231,28 @@ void sim(Int_t events_count = 1000)
 	// nd->SetGeometryFileName(ndGeoFileName);
 	// run->AddModule(nd);
 	//-------------------------------------------------------------------------
+	
 	FairPrimaryGenerator *primGen = new FairPrimaryGenerator();
 
-	Double_t kinE_MevPerNucleon = 25.7;
+	Double_t kinE_MevPerNucleon = 25.7;	//in MeV
 
 	Int_t Z = 2, A = 8, Q = 2;
 	TString ionName = "8He";
 	ERIonMixGenerator *generator = new ERIonMixGenerator(ionName, Z, A, Q, 1);
-	Double32_t kin_energy = kinE_MevPerNucleon * 1e-3 * A; // GeV
-	generator->SetKinE(kin_energy);
-	// generator->SetKinESigma(0.2015, 0.00405);
-	// generator->SetKinESigma(0.205, 0.0605);
-	generator->SetPSigmaOverP(0.017);
-	// generator->SetPSigmaOverP(0.);
+	Double32_t kin_energy = kinE_MevPerNucleon * 1e-3 * A; //in GeV
+	
+	//monoenergetic beam
+	// generator->SetKinERange(kin_energy, kin_energy);
+	
+	generator->SetKinESigma(kin_energy, 0.00405);
 
-	// generator->SetThetaSigma(0., 0.);
-	generator->SetThetaSigma(0.75, 0.4);
-	generator->SetPhiRange(0, 360);
-	// generator->SetBoxXYZ(0, 0, 0., 0., beamStartPosition);
+	generator->SetThetaSigma(0., 0.);
+	// generator->SetThetaSigma(0.75, 0.4);
+	// generator->SetPhiRange(0, 360);
+	generator->SetBoxXYZ(0, 0, 0., 0., beamStartPosition);
+	// generator->SetBoxXYZ(-2., 0., 2., 0., beamStartPosition);
 	//  generator->SetSigmaXYZ(0., 0., beamStartPosition, 0., 0.);
-	generator->SetSigmaXYZ(0.033, -0.072, beamStartPosition, 0.5, 0.4);
+	// generator->SetSigmaXYZ(0.033, -0.072, beamStartPosition, 0.5, 0.4);
 	generator->SpreadingOnTarget();
 
 	primGen->AddGenerator(generator);
@@ -258,66 +264,25 @@ void sim(Int_t events_count = 1000)
 	Double_t massn4 = 4 * 0.939565; // 7.5061760;  // [GeV]
 	ERDecayer *decayer = new ERDecayer();
 	ERDecay8He4He4nTransfer *targetDecay = new ERDecay8He4He4nTransfer();
-	targetDecay->SetInteractionVolumeName("tubeD2");
-	// targetDecay->SetInteractionVolumeName("D2_shape");
-	// targetDecay->SetInteractionVolumeName("target3HVol");
-	// target3HVol
+	// targetDecay->SetInteractionVolumeName("tubeD2");
+	targetDecay->SetInteractionVolumeName("targetSensVol");
 	// targetDecay->SetNuclearInteractionLength(63.);
-	targetDecay->SetNuclearInteractionLength(1000.);
+	targetDecay->SetNuclearInteractionLength(1000.);	//in cm
+	targetDecay->SetMaxPathLength(0.6);					//in cm
+	targetDecay->SetMinStep(1e-4);						//in cm
+	
 	// targetDecay->Set4nMass(massn4);
 	//  targetDecay->Set4nExitation(0.00237, 0.00412, 1);
 	// targetDecay->Set4nExitation(0.00237, 0.00001, 1);
 	//  targetDecay->Set6LiExitation(0.017985, 0.003012, 1);
 	// targetDecay->Set6LiExitation(0.017985, 0.00001, 1);
-	targetDecay->SetMinStep(1e-4);
-	targetDecay->SetMaxPathLength(1.1);
 	// targetDecay->SetAngularDistribution("./cos_tetta_cross.txt");
-	// targetDecay->SetAngularDistribution("/home/muzalevskii/work/macro/exp2024/sim/input/rawCS.txt");
 
-	// cout << "ajhbfkjasbdf1" << endl;
 	decayer->AddDecay(targetDecay);
-	// cout << "ajhbfkjasbdf2" << endl;
 	run->SetDecayer(decayer);
-	// cout << "ajhbfkjasbdf3" << endl;
 
-	// ------- QTelescope Digitizer -------------------------------------------
-	// ERTelescopeDigitizer *qtelescopeDigitizer = new ERTelescopeDigitizer(verbose);
-	// qtelescopeDigitizer->SetSiElossThreshold(0.2);
-	// qtelescopeDigitizer->SetSiElossSigma(0.025);
-	// qtelescopeDigitizer->SetSiTimeSigma(0);
-	// qtelescopeDigitizer->SetCsIElossThreshold(1);
-	// qtelescopeDigitizer->SetCsIElossSigma(0.35);
-	// qtelescopeDigitizer->SetCsITimeSigma(0);
-	// run->AddTask(qtelescopeDigitizer);
-
-	// -----  BeamDet Digitizer ----------------------------------------------
-	// ERBeamDetDigitizer *beamDetDigitizer = new ERBeamDetDigitizer(verbose);
-	// // beamDetDigitizer->SetMWPCElossThreshold(0.000006);
-	// // beamDetDigitizer->SetToFElossThreshold(0.000006);
-	// beamDetDigitizer->SetMWPCElossThreshold(0.);
-	// beamDetDigitizer->SetToFElossThreshold(0.);
-	// beamDetDigitizer->SetToFElossSigmaOverEloss(0);
-	// beamDetDigitizer->SetToFTimeSigma(0.148);
-	// run->AddTask(beamDetDigitizer);
-	// ------------------------------------------------------------------------
-	// ERNDDigitizer *ndDigitizer = new ERNDDigitizer(1);
-	// ndDigitizer->SetEdepError(0.0, 0.04, 0.02);
-	// ndDigitizer->SetLYError(0.0, 0.04, 0.02);
-	// ndDigitizer->SetTimeError(0.001);
-	// // ndDigitizer->SetQuenchThreshold(0.005);
-	// // ndDigitizer->SetLYThreshold(0.004);
-	// // ndDigitizer->SetProbabilityB(0.1);
-	// // ndDigitizer->SetProbabilityC(0.3);
-	// run->AddTask(ndDigitizer);
-	//-------Set visualisation flag to true------------------------------------
-	// run->SetStoreTraj(kTRUE);
-	// -----   Initialize simulation run   ------------------------------------
-
-	// cout << "ajhbfkjasbdf4" << endl;
 	run->Init();
-	// cout << "ajhbfkjasbdf5" << endl;
-	Int_t nSteps = -15000;
-	// cout << "ajhbfkjasbdf6" << endl;
+	// Int_t nSteps = -15000;
 
 	// -----   Runtime database   ---------------------------------------------
 	Bool_t kParameterMerged = kTRUE;
