@@ -22,7 +22,7 @@ using std::cout, std:: endl;
 
 #endif
 
-void sim(Int_t events_count = 1000)
+void sim(Int_t events_count = 10)
 {
 
 	// Double_t CentTelzOffset = 0.;
@@ -62,7 +62,9 @@ void sim(Int_t events_count = 1000)
 	// FairLogger::GetLogger()->SetLogScreenLevel("FATAL");
 	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG");
 	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG2");
-	FairLogger::GetLogger()->SetLogScreenLevel("INFO");
+	FairLogger::GetLogger()->SetLogScreenLevel("DEBUG3");
+	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG4");
+	// FairLogger::GetLogger()->SetLogScreenLevel("INFO");
 	// FairLogger::GetLogger()->SetLogVerbosityLevel("VERYHIGH");
 	
 	// -----   Create simulation run   ----------------------------------------
@@ -277,6 +279,10 @@ void sim(Int_t events_count = 1000)
 	//  targetDecay->Set6LiExitation(0.017985, 0.003012, 1);
 	// targetDecay->Set6LiExitation(0.017985, 0.00001, 1);
 	// targetDecay->SetAngularDistribution("./cos_tetta_cross.txt");
+	// targetDecay->SetAngularDistribution("./sin_theta_cross.txt");
+	targetDecay->SetAngularDistribution("./sin_theta_cross_corrupted.txt");
+
+return;
 
 	decayer->AddDecay(targetDecay);
 	run->SetDecayer(decayer);

@@ -356,8 +356,8 @@ void ERDecay8He4He4nTransfer::FinishEvent()
 //-------------------------------------------------------------------------------------------------
 void ERDecay8He4He4nTransfer::ReactionPhaseGenerator(Double_t Ecm)
 {
-	//particle 1: 4He (m1, E1)
-	//particle 2: 8He (m2, E2)
+	// particle 1: 4He (m1, E1)
+	// particle 2: 8He (m2, E2)
 
 	Double_t m1 = G4IonTable::GetIonTable()->GetIon(2, 4)->GetPDGMass() * 1e-3;
 	Double_t m2 = G4IonTable::GetIonTable()->GetIon(2, 8)->GetPDGMass() * 1e-3;
@@ -376,11 +376,13 @@ void ERDecay8He4He4nTransfer::ReactionPhaseGenerator(Double_t Ecm)
 	Double_t thetaCM;
 	if (!fADInput)
 	{ // if file with angular distribution isn't setted than isotropic distribution is generated
-		LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] default isotropic distrubution" << FairLogger::endl;
+		// LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] default isotropic distrubution" << FairLogger::endl;
+		LOG(INFO) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] default isotropic distrubution" << FairLogger::endl;
 		thetaCM = TMath::ACos(gRandom->Uniform(-1, 1));
 	}
 	else
 	{
+		LOG(INFO) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] distrubution from fADFunction" << FairLogger::endl;
 		thetaCM = fADFunction->GetRandom(fThetaMin, fThetaMax) * TMath::DegToRad();
 	}
 	fTheta = thetaCM;
@@ -474,6 +476,10 @@ Double_t ERDecay8He4He4nTransfer::ADEvaluate(Double_t *x, Double_t *p)
 //-------------------------------------------------------------------------------------------------
 void ERDecay8He4He4nTransfer::SetAngularDistribution(TString ADFile)
 {
+	// set the fADFunction basing on points from the text file
+	//
+	// in case of DEBUG2, resulting function will be drawn
+
 	TString ADFilePath = gSystem->Getenv("VMCWORKDIR");
 	ADFilePath = ADFile;
 	std::ifstream f;
@@ -484,39 +490,81 @@ void ERDecay8He4He4nTransfer::SetAngularDistribution(TString ADFile)
 	{
 		LOG(FATAL) << "Can't open file " << ADFilePath << FairLogger::endl;
 	}
-	Int_t nPoints = std::count(std::istreambuf_iterator<char>(f),
-							   std::istreambuf_iterator<char>(), '\n');
-	f.seekg(0, std::ios::beg);
-	TVectorD tet(nPoints);
-	TVectorD sigma(nPoints);
-	LOG(DEBUG2) << "nPoints = " << nPoints << FairLogger::endl;
+
+	std::vector<Double_t> theta;
+	std::vector<Double_t> sigma;
+	LOG(DEBUG3) << "[ERDecay8He4He4nTransfer::SetAngularDistribution] angular points before reading the file: "
+				<< theta.size() << FairLogger::endl;
 	Int_t i = 0;
-	while (!f.eof())
+	std::string line;
+	Double_t currTheta, currSigma; // theta and sigma values for current line
+	while (std::getline(f, line))
 	{
-		// Костыль
-		if (i == nPoints)
-			break;
-		f >> tet(i) >> sigma(i);
-		LOG(DEBUG3) << i << ": " << tet(i) << "\t" << sigma(i) << FairLogger::endl;
+		if (line.empty() || line[0] == '#' || line.substr(0, 2) == "//")
+		{
+			continue;
+		}
+
+		// Create a stringstream to parse the line
+		std::stringstream ss(line);
+		std::cout << line << std::endl;
+
+		// read two columns with angle and cross section
+		if (ss >> currTheta >> currSigma)	//check for demanded two column format
+		{
+			theta.push_back(currTheta);
+			sigma.push_back(currSigma);
+		}
+		else	//handling error
+		{
+			LOG(ERROR) << "[ERDecay8He4He4nTransfer::SetAngularDistribution] "
+					   << "Invalid format in line: " << line << FairLogger::endl;
+			theta.push_back(0.);
+			sigma.push_back(0.);
+		}
+		LOG(DEBUG4) << "\tread from file: " << i << ": " << theta[i] << "\t" << sigma[i] << FairLogger::endl;
+
 		i++;
 	}
-	fADInput = new TGraph(tet, sigma);
-	if (fADInput->GetN() <= 0)
-	{ // if there are no points in input file
+	LOG(DEBUG3) << "[ERDecay8He4He4nTransfer::SetAngularDistribution] angular points after reading the file: "
+				<< theta.size() << FairLogger::endl;
+
+	if (theta.size() != sigma.size())
+	{
+		LOG(ERROR) << "[ERDecay8He4He4nTransfer::SetAngularDistribution] "
+				   << "Different numbers of angle and crosssection values in the file "
+				   << ADFilePath << FairLogger::endl;
+	}
+	Int_t graphSize = static_cast<Int_t>(theta.size());
+	fADInput = new TGraph(graphSize, theta.data(), sigma.data());
+	if (fADInput->GetN() <= 0) { // if there are no points in input file
 		LOG(INFO) << "ERDecay8He4He4nTransfer::SetAngularDistribution: "
 				  << "Too few inputs for creation of AD function!" << FairLogger::endl;
 		return;
 	}
-	Double_t *angle = fADInput->GetX(); // get first column variables that contains number of point
+	Double_t *angle = fADInput->GetX(); // get first column variables that contains angle
 
 	// Creation of angular distribution function using class member function.
 	// Constructor divides interval (0; fADInput->GetN()-1) into grid.
 	// On each step of grid it calls ADEvaluate() to get interpolated values of input data.
 	fThetaMin = angle[0];
 	fThetaMax = angle[fADInput->GetN() - 1];
+	LOG(DEBUG2) << "[ERDecay8He4He4nTransfer::SetAngularDistribution] ThetaMin: " << fThetaMin << "\tThetaMax: " << fThetaMax << FairLogger::endl;
+
+	if (FairLogger::GetLogger()->IsLogNeeded(DEBUG3))
+	{
+		for (size_t j = 0; j < fADInput->GetN(); j++)
+		{
+			if (j < 15 || j > (fADInput->GetN() - 15))
+				LOG(DEBUG3) << "\tread from file: " << j << ": " << theta[j] << "\t" << sigma[j] << FairLogger::endl;
+		}
+	}
+
 	fADFunction = new TF1("angDistr", this, &ERDecay8He4He4nTransfer::ADEvaluate,
 						  fThetaMin, fThetaMax, 0, "ERDecay8He4He4nTransfer", "ADEvaluate");
-	// fADFunction->Eval(1.);
+
+	if (FairLogger::GetLogger()->IsLogNeeded(DEBUG2))
+		fADFunction->Draw();
 }
 //-------------------------------------------------------------------------------------------------
 ClassImp(ERDecay8He4He4nTransfer)
