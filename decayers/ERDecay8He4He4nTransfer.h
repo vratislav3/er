@@ -30,13 +30,15 @@ public:
 	// 	f4nMass = mass;
 	// 	fIs4nUserMassSet = true;
 	// }
-	// void Set4nExitation(Double_t excMean, Double_t fwhm, Double_t distibWeight);
+	void Set8HeExcitation(Double_t excMean, Double_t fwhm, Double_t distibWeight);
 	// void SetDecayFile(const TString &filePath, Double_t excitationEnergyInFile /*[GeV]*/) { fDecayFilePath = filePath; }
 
 	/** @brief Sets distribution is contained in file.
 	 ** @param ADfile  file with angular distribution.
 	 **/
 	void SetAngularDistribution(TString ADfile);
+
+	void Print8HeExcitation();
 
 public:
 	Bool_t Init();
@@ -79,13 +81,14 @@ private:
 	Double_t fTargetThickness;
 	Bool_t fDecayFinish;
 
-	// std::vector<Double_t> f4nExcitationMean;
-	// std::vector<Double_t> f4nExcitationSigma;
-	// std::vector<Double_t> f4nExcitationWeight;
+	std::vector<Double_t> f8HeExcitationStateMeanEnergy;
+	std::vector<Double_t> f8HeExcitationStateSigma;
+	std::vector<Double_t> f8HeExcitationStateWeight;
+	
+	Bool_t fIs8HeExcitationSet;
 
 	// Double_t f4nMass;
 	// Bool_t fIs4nUserMassSet;
-	// Bool_t fIs4nExcitationSet;
 
 	// TString fDecayFilePath;
 	// Double_t fDecayFileExcitation = 1. /*[GeV]*/;

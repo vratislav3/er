@@ -62,7 +62,7 @@ void sim(Int_t events_count = 10)
 	// FairLogger::GetLogger()->SetLogScreenLevel("FATAL");
 	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG");
 	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG2");
-	FairLogger::GetLogger()->SetLogScreenLevel("DEBUG3");
+	FairLogger::GetLogger()->SetLogScreenLevel("DEBUG2");
 	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG4");
 	// FairLogger::GetLogger()->SetLogScreenLevel("INFO");
 	// FairLogger::GetLogger()->SetLogVerbosityLevel("VERYHIGH");
@@ -244,9 +244,9 @@ void sim(Int_t events_count = 10)
 	Double32_t kin_energy = kinE_MevPerNucleon * 1e-3 * A; //in GeV
 	
 	//monoenergetic beam
-	// generator->SetKinERange(kin_energy, kin_energy);
+	generator->SetKinERange(kin_energy, kin_energy);
 	
-	generator->SetKinESigma(kin_energy, 0.00405);
+	// generator->SetKinESigma(kin_energy, 0.00405);
 
 	generator->SetThetaSigma(0., 0.);
 	// generator->SetThetaSigma(0.75, 0.4);
@@ -274,15 +274,21 @@ void sim(Int_t events_count = 10)
 	targetDecay->SetMinStep(1e-4);						//in cm
 	
 	// targetDecay->Set4nMass(massn4);
-	//  targetDecay->Set4nExitation(0.00237, 0.00412, 1);
-	// targetDecay->Set4nExitation(0.00237, 0.00001, 1);
+	 targetDecay->Set8HeExcitation(0.002, 0.00412, 1);
+	 targetDecay->Set8HeExcitation(0.004, 0.00412, 2);
+	 targetDecay->Set8HeExcitation(0.009, 0.00412, 1);
+
+	 targetDecay->Print8HeExcitation();
+
+return;
+
 	//  targetDecay->Set6LiExitation(0.017985, 0.003012, 1);
 	// targetDecay->Set6LiExitation(0.017985, 0.00001, 1);
 	// targetDecay->SetAngularDistribution("./cos_tetta_cross.txt");
 	// targetDecay->SetAngularDistribution("./sin_theta_cross.txt");
 	targetDecay->SetAngularDistribution("./sin_theta_cross_corrupted.txt");
 
-return;
+// return;
 
 	decayer->AddDecay(targetDecay);
 	run->SetDecayer(decayer);

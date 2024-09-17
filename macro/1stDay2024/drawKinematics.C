@@ -132,8 +132,8 @@ void DrawKin()
 
 	cKin->cd(1);
 	{
-		tr->Draw("MCEventHeader.fThetaCM", "", "");
-		SetAxesTitles("Reaction Theta", "Theta [deg]");
+		tr->Draw("MCEventHeader.fThetaCM*TMath::RadToDeg()", "", "");
+		SetAxesTitles("Reaction Theta", "", "Theta [deg]");
 		// currentHist = (TH1F *)gPad->GetPrimitive("htemp");
 		// currentHist->SetTitle("Reaction Theta");
 		// currentHist->GetXaxis()->SetTitle("Theta [deg]");

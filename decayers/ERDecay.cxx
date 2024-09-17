@@ -105,6 +105,8 @@ void ERDecay::SetMaxPathLength(Double_t pathLength) {
 //--------------------------------------------------------------------------------------------------
 void ERDecay::CalculateTargetParameters() {
   LOG(DEBUG) << "ERDecay: calculated parameters " << FairLogger::endl;
+  LOG(DEBUG) << "ERDecay::CalculateTargetParameters(): fInteractionVolumeName set as "
+    << fInteractionVolumeName << FairLogger::endl;
   if (fInteractionVolumeName != "") {
     TGeoVolume* vol = gGeoManager->FindVolumeFast(fInteractionVolumeName);
     TGeoBBox*   shape = (TGeoBBox*)vol->GetShape(); // we use conversion of shape type to TGeoBBox because all shape types in ROOT inherited from TGeoBBox;

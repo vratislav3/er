@@ -15,6 +15,7 @@
 // using namespace std;
 
 #include "TVirtualMC.h"
+#include "Math/Integrator.h"
 // #include "TLorentzVector.h"
 // #include "TMCProcess.h"
 // #include "TRandom.h"
@@ -84,16 +85,31 @@ ERDecay8He4He4nTransfer::~ERDecay8He4He4nTransfer()
 }
 
 //-------------------------------------------------------------------------------------------------
-// void ERDecay8He4He4nTransfer::Set4nExitation(Double_t excMean, Double_t fwhm, Double_t distibWeight) {
-//   f4nExcitationMean.push_back(excMean);
-//   f4nExcitationSigma.push_back(fwhm / 2.355);
-//   if (!fIs4nExcitationSet) {
-//     f4nExcitationWeight.push_back(distibWeight);
-//     fIs4nExcitationSet = true;
-//     return ;
-//   }
-//   f4nExcitationWeight.push_back(f4nExcitationWeight.back() + distibWeight);
-// }
+void ERDecay8He4He4nTransfer::Set8HeExcitation(Double_t excMean, Double_t fwhm, Double_t distibWeight)
+{
+	f8HeExcitationStateMeanEnergy.push_back(excMean);
+	f8HeExcitationStateSigma.push_back(fwhm / 2.355);
+	if (!fIs8HeExcitationSet)
+	{
+		f8HeExcitationStateWeight.push_back(distibWeight);
+		fIs8HeExcitationSet = true;
+		return;
+	}
+	f8HeExcitationStateWeight.push_back(f8HeExcitationStateWeight.back() + distibWeight);
+}
+
+//-------------------------------------------------------------------------------------------------
+void ERDecay8He4He4nTransfer::Print8HeExcitation()
+{
+
+	for (Int_t i; i < f8HeExcitationStateMeanEnergy.size(); i++)
+	{
+		std::cout << i << "\t" << f8HeExcitationStateMeanEnergy[i]
+				  << "\t" << f8HeExcitationStateSigma[i]
+				  << "\t" << f8HeExcitationStateWeight[i]
+				  << std::endl;
+	}
+}
 
 //-------------------------------------------------------------------------------------------------
 Bool_t ERDecay8He4He4nTransfer::Init()
@@ -141,9 +157,9 @@ Bool_t ERDecay8He4He4nTransfer::Init()
 	//     f4nMass = f4n->Mass(); // if user mass is not defined in ERDecay2H_6Li::SetH7Mass() than get a GEANT mass
 	//   }
 
-	std::cout << "adfkjasdf1" << std::endl;
+	// std::cout << "adfkjasdf1" << std::endl;
 	CalculateTargetParameters();
-	std::cout << "adfkjasdf" << std::endl;
+	// std::cout << "adfkjasdf" << std::endl;
 
 	//   if (fDecayFilePath != ""){
 	//     LOG(INFO) << "Use decay kinematics from external text file" << FairLogger::endl;
@@ -185,12 +201,9 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 		gMC->TrackPosition(curPos);
 		Double_t trackStep = gMC->TrackStep();
 		fDistanceFromEntrance += trackStep;
-		// std::cout << "Track step: " << fDistanceFromEntrance << "; Diff " << (curPos.Vect() - fInputPoint).Mag() <<  endl;
-		// std::cout << "Track step: " << fDistanceFromEntrance <<  endl;
+
 		if (fDistanceFromEntrance > fDistanceToInteractPoint)
 		{
-			// std::cout << "Start reation in target. Defined pos: " << fDistanceToInteractPoint << ", current pos: " << curPos.Z() << endl;
-
 			// 8He + 4He → 4He + 8He
 
 			// beam
@@ -217,38 +230,43 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 			targetCM.Boost(-boost);
 			ECM = beamCM(3) + targetCM(3);
 
-			//   Int_t reactionHappen = kFALSE;
+			Int_t reactionHappen = kFALSE;
 
 			//   Double_t decay4nMass;
-			//   Int_t reactionAttempsCounter = 0;
-			//   Double_t excitation = 0;  // excitation energy
-			//   while (reactionHappen==kFALSE) { // while reaction condition is not fullfilled
-			//     decay4nMass = f4nMass;
-			//     if (fIs4nExcitationSet) {
-			//       Double_t randWeight = gRandom->Uniform(0., f4nExcitationWeight.back());
-			//       Int_t distribNum = 0;
-			//       // choose distribution by weight
-			//       for (; distribNum < f4nExcitationWeight.size(); distribNum++) {
-			//         if (randWeight < f4nExcitationWeight[distribNum]) {
-			//           break;
-			//         }
-			//       }
-			//       excitation = gRandom->Gaus(f4nExcitationMean[distribNum], f4nExcitationSigma[distribNum]);
-			//       fUnstable4n->SetExcEnergy(excitation);
-			//     }
-			//     decay4nMass += excitation;
-			//     const float li6_mass = G4IonTable::GetIonTable()->GetIon(3,6)->GetPDGMass() * 1e-3;
-			//     if((ECM - li6_mass - decay4nMass) > 0) { // выход из цикла while для PhaseGenerator
-			//       reactionHappen = kTRUE;
-			//       LOG(DEBUG) << "[ERDecay2H_6Li] Reaction is happen" << std::endl;
-			//     }
-			//     reactionAttempsCounter++;
-			//     if (reactionAttempsCounter > 1000){
-			//       LOG(DEBUG) << "[ERDecay2H_6Li] Reaction is forbidden for this CM energy" << std::endl;
-			//       fDecayFinish = kTRUE;
-			//       return kTRUE;
-			//     }
-			//   }
+			  Int_t reactionAttempsCounter = 0;
+			Double_t excitation = 0; // excitation energy
+			while (reactionHappen == kFALSE)
+			{ // while reaction condition is not fullfilled
+				//     decay4nMass = f4nMass;
+				if (fIs8HeExcitationSet)
+				{
+					Double_t randWeight = gRandom->Uniform(0., f8HeExcitationStateWeight.back());
+					Int_t distribNum = 0;
+					//       // choose distribution by weight
+					for (; distribNum < f8HeExcitationStateWeight.size(); distribNum++)
+					{
+						if (randWeight < f8HeExcitationStateWeight[distribNum])
+						{
+							break;
+						}
+					}
+					excitation = gRandom->Gaus(f8HeExcitationStateMeanEnergy[distribNum], f8HeExcitationStateSigma[distribNum]);
+					// fUnstable4n->SetExcEnergy(excitation);
+				}
+				Double_t Excited8HeMass = f8He->Mass() + excitation;
+				//     const float li6_mass = G4IonTable::GetIonTable()->GetIon(3,6)->GetPDGMass() * 1e-3;
+				if ((ECM - f4He->Mass() - Excited8HeMass) > 0)
+				{	// выход из цикла while для PhaseGenerator
+					      reactionHappen = kTRUE;
+					      LOG(DEBUG) << "[ERDecay8He4He4nTransfer::Stepping] Reaction is happen" << std::endl;
+				}
+				reactionAttempsCounter++;
+				//     if (reactionAttempsCounter > 1000){
+				//       LOG(DEBUG) << "[ERDecay2H_6Li] Reaction is forbidden for this CM energy" << std::endl;
+				//       fDecayFinish = kTRUE;
+				//       return kTRUE;
+				//     }
+			}
 
 			ReactionPhaseGenerator(ECM);
 			fLv8He->Boost(boost);
@@ -347,7 +365,6 @@ void ERDecay8He4He4nTransfer::FinishEvent()
 	}
 	if (TString(run->GetMCEventHeader()->ClassName()).Contains("ERDecay8He4He4nTransferEventHeader"))
 	{
-		// ER2H_6LiEventHeader* header = (ER2H_6LiEventHeader*)run->GetMCEventHeader();
 		ERDecay8He4He4nTransferEventHeader *header = (ERDecay8He4He4nTransferEventHeader *)run->GetMCEventHeader();
 		header->Clear();
 	}
@@ -382,7 +399,7 @@ void ERDecay8He4He4nTransfer::ReactionPhaseGenerator(Double_t Ecm)
 	}
 	else
 	{
-		LOG(INFO) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] distrubution from fADFunction" << FairLogger::endl;
+		LOG(INFO) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] distrubution from defined fADFunction" << FairLogger::endl;
 		thetaCM = fADFunction->GetRandom(fThetaMin, fThetaMax) * TMath::DegToRad();
 	}
 	fTheta = thetaCM;
@@ -507,15 +524,15 @@ void ERDecay8He4He4nTransfer::SetAngularDistribution(TString ADFile)
 
 		// Create a stringstream to parse the line
 		std::stringstream ss(line);
-		std::cout << line << std::endl;
+		// std::cout << line << std::endl;
 
 		// read two columns with angle and cross section
-		if (ss >> currTheta >> currSigma)	//check for demanded two column format
+		if (ss >> currTheta >> currSigma) // check for demanded two column format
 		{
 			theta.push_back(currTheta);
 			sigma.push_back(currSigma);
 		}
-		else	//handling error
+		else // handling error
 		{
 			LOG(ERROR) << "[ERDecay8He4He4nTransfer::SetAngularDistribution] "
 					   << "Invalid format in line: " << line << FairLogger::endl;
@@ -537,7 +554,8 @@ void ERDecay8He4He4nTransfer::SetAngularDistribution(TString ADFile)
 	}
 	Int_t graphSize = static_cast<Int_t>(theta.size());
 	fADInput = new TGraph(graphSize, theta.data(), sigma.data());
-	if (fADInput->GetN() <= 0) { // if there are no points in input file
+	if (fADInput->GetN() <= 0)
+	{ // if there are no points in input file
 		LOG(INFO) << "ERDecay8He4He4nTransfer::SetAngularDistribution: "
 				  << "Too few inputs for creation of AD function!" << FairLogger::endl;
 		return;
@@ -562,6 +580,11 @@ void ERDecay8He4He4nTransfer::SetAngularDistribution(TString ADFile)
 
 	fADFunction = new TF1("angDistr", this, &ERDecay8He4He4nTransfer::ADEvaluate,
 						  fThetaMin, fThetaMax, 0, "ERDecay8He4He4nTransfer", "ADEvaluate");
+
+	// temporary workaround of errors
+	ROOT::Math::IntegratorOneDimOptions::SetDefaultIntegrator("Gauss");
+	fADFunction->GetRandom(fThetaMin, fThetaMax);
+	// ROOT::Math::IntegratorOneDimOptions::SetDefaultIntegrator("AdaptiveSingular");
 
 	if (FairLogger::GetLogger()->IsLogNeeded(DEBUG2))
 		fADFunction->Draw();
