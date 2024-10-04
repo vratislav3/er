@@ -34,8 +34,8 @@ ERDecay8He4He4nTransfer::ERDecay8He4He4nTransfer() : ERDecay("8He4He4nTransfer")
 													 fDecayFinish(kFALSE),
 													 fTargetReactZ(0.),
 													 fMinStep(0.01),
-													//  f8He(NULL),
-													//  f4He(NULL),
+													 //  f8He(NULL),
+													 //  f4He(NULL),
 													 //   f6Li(NULL),
 													 //   f4n (NULL),
 													 //   fn  (NULL),
@@ -54,8 +54,8 @@ ERDecay8He4He4nTransfer::ERDecay8He4He4nTransfer() : ERDecay("8He4He4nTransfer")
 	// fRnd->SetSeed();
 	//   fRnd2 = new TRandom3();
 	//   fRnd2->SetSeed();
-	fReactionPhaseSpace = new TGenPhaseSpace();
-	//   fDecayPhaseSpace = new TGenPhaseSpace();
+	// fReactionPhaseSpace = new TGenPhaseSpace();
+	fDecayPhaseSpace = new TGenPhaseSpace();
 	FairRunSim *run = FairRunSim::Instance();
 	//   fUnstable4n = new FairIon("4n",  0, 4, 0);
 	//   fIon6Li     = new FairIon("6Li", 3, 6, 3);
@@ -77,9 +77,14 @@ ERDecay8He4He4nTransfer::~ERDecay8He4He4nTransfer()
 	//   if (fDecayFile.is_open())
 	//     fDecayFile.close();
 	//   if (fDecayFilePath == ""){ // LV from TGenPhaseSpace will be deleted in TGenPhaseSpace
-	//     //   delete fLvn1;
-	//     //   delete fLvn2;
-	//     //   delete fLvn3;
+
+	// TODO: delete fDecayPhaseSpace, following TLorentzVectors should be deleted automatically
+	delete fLv6He;
+	delete fLvn1;
+	delete fLvn2;
+	//
+
+	//   delete fLvn3;
 	//     //   delete fLvn4;
 	//   }
 }
@@ -121,7 +126,7 @@ Bool_t ERDecay8He4He4nTransfer::Init()
 	// std::cout << "Decayer Init." << std::endl;
 	LOG(INFO) << "[ERDecay8He4He4nTransfer::Init] started" << FairLogger::endl;
 
-	if (!G4IonTable::GetIonTable()->GetIon(2,8))
+	if (!G4IonTable::GetIonTable()->GetIon(2, 8))
 	// f8He = TDatabasePDG::Instance()->GetParticle("8He");
 	// f8He->Print();
 	// if (!f8He)
@@ -267,9 +272,9 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 					// fUnstable4n->SetExcEnergy(excitation);
 				}
 				// Double_t Excited8HeMass = f8He->Mass() + excitation;
-				// 
-				excited8HeMass = G4IonTable::GetIonTable()->GetIonMass(2,8)/1000. + excitation;
-				Double_t alhpaRecoilMass = G4IonTable::GetIonTable()->GetIonMass(2,4)/1000.;
+				//
+				excited8HeMass = G4IonTable::GetIonTable()->GetIonMass(2, 8) / 1000. + excitation;
+				Double_t alhpaRecoilMass = G4IonTable::GetIonTable()->GetIonMass(2, 4) / 1000.;
 				LOG(DEBUG) << "[ERDecay8He4He4nTransfer::Stepping] Excited8HeMass is " << excited8HeMass << FairLogger::endl;
 				//     const float li6_mass = G4IonTable::GetIonTable()->GetIon(3,6)->GetPDGMass() * 1e-3;
 				if ((ECM - alhpaRecoilMass - excited8HeMass) > 0)
@@ -284,20 +289,22 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 					fDecayFinish = kTRUE;
 					return kTRUE;
 				}
-			}//while
+			} // while
 
 			ReactionPhaseGenerator(ECM, excited8HeMass);
 			fLv8He->Boost(boost);
 			fLv4He->Boost(boost);
 
-			//   //4n → n +n +n +n
-			//   if (!DecayPhaseGenerator(excitation)){
-			//     fDecayFinish = kTRUE;
-			//     return kTRUE;
-			//   }
+			// 4n → n +n +n +n
+			if (!DecayPhaseGenerator(excitation))
+			{
+				fDecayFinish = kTRUE;
+				return kTRUE;
+			}
 
 			//   Int_t He8TrackNb, tetraNTrackNb, Li6TrackNb, n1TrackNb, n2TrackNb, n3TrackNb, n4TrackNb;
 			Int_t He8BeamTrackNb, He8TrackNb, He4TrackNb;
+			Int_t n1TrackNb;
 
 			He8BeamTrackNb = gMC->GetStack()->GetCurrentTrackNumber();
 			LOG(DEBUG2) << "[ERDecay8He4He4nTransfer::Stepping] He8BeamTrackNb " << He8BeamTrackNb << FairLogger::endl;
@@ -308,13 +315,13 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 			// 						   gMC->TrackTime(), 0., 0., 0.,
 			// 						   kPDecay, He8TrackNb, 1, 0);
 
-			gMC->GetStack()->PushTrack(1, He8BeamTrackNb, G4IonTable::GetIonTable()->GetNucleusEncoding(2,8),
+			gMC->GetStack()->PushTrack(1, He8BeamTrackNb, G4IonTable::GetIonTable()->GetNucleusEncoding(2, 8),
 									   fLv8He->Px(), fLv8He->Py(), fLv8He->Pz(),
 									   fLv8He->E(), curPos.X(), curPos.Y(), curPos.Z(),
 									   gMC->TrackTime(), 0., 0., 0.,
 									   kPDecay, He8TrackNb, 1, 0);
 
-			gMC->GetStack()->PushTrack(1, He8BeamTrackNb, G4IonTable::GetIonTable()->GetNucleusEncoding(2,4),
+			gMC->GetStack()->PushTrack(1, He8BeamTrackNb, G4IonTable::GetIonTable()->GetNucleusEncoding(2, 4),
 									   fLv4He->Px(), fLv4He->Py(), fLv4He->Pz(),
 									   fLv4He->E(), curPos.X(), curPos.Y(), curPos.Z(),
 									   gMC->TrackTime(), 0., 0., 0.,
@@ -325,11 +332,13 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 			//                              fLv6Li->E(), curPos.X(), curPos.Y(), curPos.Z(),
 			//                              gMC->TrackTime(), 0., 0., 0.,
 			//                              kPDecay, Li6TrackNb, f6Li->Mass(), 0);
-			//   gMC->GetStack()->PushTrack(1, He8TrackNb, fn->PdgCode(),
-			//                              fLvn1->Px(),fLvn1->Py(),fLvn1->Pz(),
-			//                              fLvn1->E(), curPos.X(), curPos.Y(), curPos.Z(),
-			//                              gMC->TrackTime(), 0., 0., 0.,
-			//                              kPDecay, n1TrackNb, fn->Mass(), 0);
+			
+			// gMC->GetStack()->PushTrack(1, He8TrackNb, 2112,		//TODO: get PDG code for neutron automatically
+			// 						   fLvn1->Px(), fLvn1->Py(), fLvn1->Pz(),
+			// 						   fLvn1->E(), curPos.X(), curPos.Y(), curPos.Z(),
+			// 						   gMC->TrackTime(), 0., 0., 0.,
+			// 						   kPDecay, n1TrackNb, 1, 0);
+			
 			//   gMC->GetStack()->PushTrack(1, He8TrackNb, fn->PdgCode(),
 			//                              fLvn2->Px(),fLvn2->Py(),fLvn2->Pz(),
 			//                              fLvn2->E(), curPos.X(), curPos.Y(), curPos.Z(),
@@ -357,7 +366,8 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 				header->SetInputIon(He8BeamTrackNb);
 				header->AddOutputParticle(He8TrackNb);
 				header->AddOutputParticle(He4TrackNb);
-				// header->AddOutputParticle(n1TrackNb);
+
+				header->AddOutputParticle(n1TrackNb);
 				// header->AddOutputParticle(n2TrackNb);
 				// header->AddOutputParticle(n3TrackNb);
 				// header->AddOutputParticle(n4TrackNb);
@@ -365,8 +375,11 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 			if (TString(run->GetMCEventHeader()->ClassName()).Contains("ERDecay8He4He4nTransferEventHeader"))
 			{
 				ERDecay8He4He4nTransferEventHeader *header = (ERDecay8He4He4nTransferEventHeader *)run->GetMCEventHeader();
-				header->SetData(curPos.Vect(), beam, target, *fLv8He, *fLv4He,
-								// *fLvn1, *fLvn2, *fLvn3, *fLvn4,
+				// TODO: check meaning of time here
+				fLvn1->Print();
+				header->SetData(curPos.Vect(),
+								beam, target, *fLv8He, *fLv4He,
+								*fLv6He, *fLvn1, *fLvn2,
 								0., fTheta);
 				header->SetTrigger(1);
 			}
@@ -456,63 +469,84 @@ void ERDecay8He4He4nTransfer::ReactionPhaseGenerator(Double_t Ecm, Double_t mass
 }
 
 //-------------------------------------------------------------------------------------------------
-// Bool_t ERDecay8He4He4nTransfer::DecayPhaseGenerator(const Double_t excitation) {
-//   if (fDecayFilePath == ""){ // if decay file not defined, per morm decay using phase space
-//     Double_t decayMasses[4];
-//     // decayMasses[0] = fn->Mass();
-//     // decayMasses[1] = fn->Mass();
-//     // decayMasses[2] = fn->Mass();
-//     // decayMasses[3] = fn->Mass();
-//     fDecayPhaseSpace->SetDecay(*fLv4n, 4, decayMasses);
-//     fDecayPhaseSpace->Generate();
-//     // fLvn1 = fDecayPhaseSpace->GetDecay(0);
-//     // fLvn2 = fDecayPhaseSpace->GetDecay(1);
-//     // fLvn3 = fDecayPhaseSpace->GetDecay(2);
-//     // fLvn4 = fDecayPhaseSpace->GetDecay(3);
-//     return kTRUE;
-//   }
-//   if (fDecayFile.eof()){
-//     LOG(ERROR) << "Decay file finished! There are no more events in file " << fDecayFilePath
-//                << " to be processed." << FairLogger::endl;
-//     return kFALSE;
-//   }
-//   std::string event_line;
-//   std::getline(fDecayFile,event_line);
-//   std::istringstream iss(event_line);
-//   std::vector<std::string> outputs_components((std::istream_iterator<std::string>(iss)),
-//                                                std::istream_iterator<std::string>());
-//   if (outputs_components.size() < 4*3){
-//     LOG(ERROR) << "Wrong components number in raw in decay file!" << FairLogger::endl;
-//     return kFALSE;
-//   }
-//   // Fill momentum vectors in CM.
-//   TVector3 pn1(std::stod(outputs_components[0]),std::stod(outputs_components[1]),
-//                std::stod(outputs_components[2]));
-//   TVector3 pn2(std::stod(outputs_components[3]),std::stod(outputs_components[4]),
-//                std::stod(outputs_components[5]));
-//   TVector3 pn3(std::stod(outputs_components[6]),std::stod(outputs_components[7]),
-//                std::stod(outputs_components[8]));
-//   TVector3 pn4(std::stod(outputs_components[9]),std::stod(outputs_components[10]),
-//                std::stod(outputs_components[11]));
-//   // Apply scale factor
-//   const auto excitationScale = excitation > 0. ? sqrt(excitation / fDecayFileExcitation) : 1.;
-//   const auto MeV2GeV = 1./1000.;
-//   const auto scale = excitationScale * MeV2GeV;
-//   pn1 *= scale;
-//   pn2 *= scale;
-//   pn3 *= scale;
-//   pn4 *= scale;
-//   const auto fill_output_lorentz_vectors_in_lab =
-//       [this](TLorentzVector* lv, const TVector3& p, const Double_t mass) {
-//         lv->SetXYZM(p.X(), p.Y(), p.Z(), mass);
-//         lv->Boost(fLv4n->BoostVector());
-//       };
-// //   fill_output_lorentz_vectors_in_lab(fLvn1, pn1, fn->Mass());
-// //   fill_output_lorentz_vectors_in_lab(fLvn2, pn2, fn->Mass());
-// //   fill_output_lorentz_vectors_in_lab(fLvn3, pn3, fn->Mass());
-// //   fill_output_lorentz_vectors_in_lab(fLvn4, pn4, fn->Mass());
-//   return kTRUE;
-// }
+Bool_t ERDecay8He4He4nTransfer::DecayPhaseGenerator(const Double_t excitation)
+{
+	// if (fDecayFilePath == "")
+	// { // if decay file not defined, per morm decay using phase space
+	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::DecayPhaseGenerator] excitation of 8He is set to "
+			   << excitation * 1000. << " MeV" << FairLogger::endl;
+
+	Double_t decayMasses[3];
+	// mass of 6He
+	decayMasses[0] = G4IonTable::GetIonTable()->GetIonMass(2, 6) / 1000.;
+	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::DecayPhaseGenerator] mass of 6He is "
+			   << decayMasses[0] << " GeV" << FairLogger::endl;
+	// mass of neutron
+	decayMasses[1] = G4IonTable::GetIonTable()->GetIonMass(0, 1) / 1000.;
+	decayMasses[2] = G4IonTable::GetIonTable()->GetIonMass(0, 1) / 1000.;
+	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::DecayPhaseGenerator] mass of neutron is " << decayMasses[1] << " GeV" << FairLogger::endl;
+
+	fDecayPhaseSpace->SetDecay(*fLv8He, 3, decayMasses);
+	fDecayPhaseSpace->Generate();
+
+	fLv6He = fDecayPhaseSpace->GetDecay(0);
+	fLvn1 = fDecayPhaseSpace->GetDecay(1);
+	fLvn2 = fDecayPhaseSpace->GetDecay(2);
+	// std::cout << DEBUG << std::endl;
+	fLvn1->Print();
+
+	return kTRUE;
+	// }
+	// else {
+	// 	return kFALSE;
+	// }
+
+	// if (fDecayFile.eof())
+	// {
+	// 	LOG(ERROR) << "Decay file finished! There are no more events in file " << fDecayFilePath
+	// 			   << " to be processed." << FairLogger::endl;
+	// 	return kFALSE;
+	// }
+	// std::string event_line;
+	// std::getline(fDecayFile, event_line);
+	// std::istringstream iss(event_line);
+	// std::vector<std::string> outputs_components((std::istream_iterator<std::string>(iss)),
+	// 											std::istream_iterator<std::string>());
+	// if (outputs_components.size() < 4 * 3)
+	// {
+	// 	LOG(ERROR) << "Wrong components number in raw in decay file!" << FairLogger::endl;
+	// 	return kFALSE;
+	// }
+
+	// // Fill momentum vectors in CM.
+	// TVector3 pn1(std::stod(outputs_components[0]), std::stod(outputs_components[1]),
+	// 			 std::stod(outputs_components[2]));
+	// TVector3 pn2(std::stod(outputs_components[3]), std::stod(outputs_components[4]),
+	// 			 std::stod(outputs_components[5]));
+	// TVector3 pn3(std::stod(outputs_components[6]), std::stod(outputs_components[7]),
+	// 			 std::stod(outputs_components[8]));
+	// TVector3 pn4(std::stod(outputs_components[9]), std::stod(outputs_components[10]),
+	// 			 std::stod(outputs_components[11]));
+	// // Apply scale factor
+	// const auto excitationScale = excitation > 0. ? sqrt(excitation / fDecayFileExcitation) : 1.;
+	// const auto MeV2GeV = 1. / 1000.;
+	// const auto scale = excitationScale * MeV2GeV;
+	// pn1 *= scale;
+	// pn2 *= scale;
+	// pn3 *= scale;
+	// pn4 *= scale;
+	// const auto fill_output_lorentz_vectors_in_lab =
+	// 	[this](TLorentzVector *lv, const TVector3 &p, const Double_t mass)
+	// {
+	// 	lv->SetXYZM(p.X(), p.Y(), p.Z(), mass);
+	// 	lv->Boost(fLv4n->BoostVector());
+	// };
+	// //   fill_output_lorentz_vectors_in_lab(fLvn1, pn1, fn->Mass());
+	// //   fill_output_lorentz_vectors_in_lab(fLvn2, pn2, fn->Mass());
+	// //   fill_output_lorentz_vectors_in_lab(fLvn3, pn3, fn->Mass());
+	// //   fill_output_lorentz_vectors_in_lab(fLvn4, pn4, fn->Mass());
+	// return kTRUE;
+}
 
 //-------------------------------------------------------------------------------------------------
 Double_t ERDecay8He4He4nTransfer::ADEvaluate(Double_t *x, Double_t *p)

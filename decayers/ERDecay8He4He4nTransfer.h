@@ -54,7 +54,7 @@ private:
 	 **/
 	void ReactionPhaseGenerator(Double_t Ecm, Double_t massOf8HeProduct);
 
-	// Bool_t DecayPhaseGenerator(Double_t excitation);
+	Bool_t DecayPhaseGenerator(Double_t excitation);
 
 	std::vector<TLorentzVector> ReadDecayEvent();
 
@@ -68,14 +68,19 @@ private:
 	
 	TLorentzVector *fLv8He; //!		product of 4n transfer
 	TLorentzVector *fLv4He;	//!		recoil
-	// TLorentzVector *fLv4n;	//!
-	Float_t fTheta;			//!
+	Float_t fTheta;			//!		theta of reaction (in CM or LAB?)
+	
+	TLorentzVector *fLv6He;	//!		6He from 8He decay
+	TLorentzVector *fLvn1;	//!		neutron from 8He decay
+	TLorentzVector *fLvn2;	//!		neutron from 8He decay
 
 	// FairIon *fIon8He;
 	// FairIon *fIon4He;
 
-	TGenPhaseSpace *fReactionPhaseSpace;
-	// TGenPhaseSpace *fDecayPhaseSpace;
+	// TGenPhaseSpace *fReactionPhaseSpace;	
+	
+	//TODO:  check its functionality, it should be changed for our analytical formulae
+	TGenPhaseSpace *fDecayPhaseSpace;	
 	Double_t fTargetReactZ;
 	Double_t fMinStep;
 	Double_t fTargetThickness;

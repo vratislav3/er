@@ -23,7 +23,8 @@ using std::cout, std:: endl;
 #endif
 
 // void sim(Int_t events_count = 10)
-void sim(Int_t events_count = 10000)
+void sim(Int_t events_count = 1000)
+// void sim(Int_t events_count = 10000)
 {
 
 	// Double_t CentTelzOffset = 0.;
