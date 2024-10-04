@@ -22,7 +22,8 @@ using std::cout, std:: endl;
 
 #endif
 
-void sim(Int_t events_count = 10)
+// void sim(Int_t events_count = 10)
+void sim(Int_t events_count = 10000)
 {
 
 	// Double_t CentTelzOffset = 0.;
@@ -61,8 +62,8 @@ void sim(Int_t events_count = 10)
 	//-------Set LOG verbosity  -----------------------------------------------
 	// FairLogger::GetLogger()->SetLogScreenLevel("FATAL");
 	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG");
-	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG2");
 	FairLogger::GetLogger()->SetLogScreenLevel("DEBUG2");
+	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG2");
 	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG4");
 	// FairLogger::GetLogger()->SetLogScreenLevel("INFO");
 	// FairLogger::GetLogger()->SetLogVerbosityLevel("VERYHIGH");
@@ -274,13 +275,13 @@ void sim(Int_t events_count = 10)
 	targetDecay->SetMinStep(1e-4);						//in cm
 	
 	// targetDecay->Set4nMass(massn4);
-	 targetDecay->Set8HeExcitation(0.002, 0.00412, 1);
-	 targetDecay->Set8HeExcitation(0.004, 0.00412, 2);
+	 targetDecay->Set8HeExcitation(0.002, 0.001, 1);
+	 targetDecay->Set8HeExcitation(0.004, 0.002, 2);
 	 targetDecay->Set8HeExcitation(0.009, 0.00412, 1);
 
 	 targetDecay->Print8HeExcitation();
 
-return;
+// return;
 
 	//  targetDecay->Set6LiExitation(0.017985, 0.003012, 1);
 	// targetDecay->Set6LiExitation(0.017985, 0.00001, 1);

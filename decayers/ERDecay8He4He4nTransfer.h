@@ -52,7 +52,7 @@ private:
 	 ** @param Ecm     Total energy in CM.
 	 ** @oaram h7Mass  H7 ion mass.
 	 **/
-	void ReactionPhaseGenerator(Double_t Ecm);
+	void ReactionPhaseGenerator(Double_t Ecm, Double_t massOf8HeProduct);
 
 	// Bool_t DecayPhaseGenerator(Double_t excitation);
 
@@ -62,8 +62,8 @@ private:
 	TRandom3 *fRnd;
 	// TRandom3 *fRnd2;
 
-	TParticlePDG *f8He;
-	TParticlePDG *f4He;
+	// TParticlePDG *f8He;
+	// TParticlePDG *f4He;
 	// TParticlePDG *f4n;
 	
 	TLorentzVector *fLv8He; //!		product of 4n transfer
@@ -71,8 +71,8 @@ private:
 	// TLorentzVector *fLv4n;	//!
 	Float_t fTheta;			//!
 
-	FairIon *fIon8He;
-	FairIon *fIon4He;
+	// FairIon *fIon8He;
+	// FairIon *fIon4He;
 
 	TGenPhaseSpace *fReactionPhaseSpace;
 	// TGenPhaseSpace *fDecayPhaseSpace;

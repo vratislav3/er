@@ -131,18 +131,39 @@ void DrawKin()
 	cKin->Divide(3, 2);
 
 	cKin->cd(1);
+	// {
 	{
+		gPad->Divide(2, 2);
+		cKin->cd(1)->cd(1);
 		tr->Draw("MCEventHeader.fThetaCM*TMath::RadToDeg()", "", "");
 		SetAxesTitles("Reaction Theta", "", "Theta [deg]");
-		// currentHist = (TH1F *)gPad->GetPrimitive("htemp");
-		// currentHist->SetTitle("Reaction Theta");
-		// currentHist->GetXaxis()->SetTitle("Theta [deg]");
+		// tr->Draw(Form("vBeam.E()-%f", massBeam), "");
+
+		cKin->cd(1)->cd(2);
+		tr->Draw("((MCEventHeader.fHe4.E())+(MCEventHeader.fHe8.E())-(MCEventHeader.fHe8_beam.E()+MCEventHeader.fHe4_target.E()))*1000.", cReaction, "");
+		SetAxesTitles("Reaction Q", "Q [MeV]");
+		// tr->Draw(Form("vRProductDcm.E()-%f", massRProduct), "");
+
+		cKin->cd(1)->cd(3);
+		tr->Draw("MCEventHeader.fHe8.M()", "");
+		// tr->SetLineColor(kRed);
+		// tr->Draw("vRProduct.Pz()+vRecoil.Pz()", "", "same");
+		// tr->SetLineColor(kBlue + 2);
+
+		cKin->cd(1)->cd(4);
+		tr->Draw("MCEventHeader.fHe8.M()-MCEventHeader.fHe8_beam.M()", "");
+		// tr->Draw("MCEventHeader.fHe8_beam.M()", "");
+
+		cKin->Update();
 	}
+
+	// currentHist = (TH1F *)gPad->GetPrimitive("htemp");
+	// currentHist->SetTitle("Reaction Theta");
+	// currentHist->GetXaxis()->SetTitle("Theta [deg]");
+	// }
 
 	cKin->cd(4);
 	{
-		tr->Draw("((MCEventHeader.fHe4.E())+(MCEventHeader.fHe8.E())-(MCEventHeader.fHe8_beam.E()+MCEventHeader.fHe4_target.E()))*1000.", cReaction, "");
-		SetAxesTitles("Reaction Q", "Q [MeV]");
 		// currentHist = (TH1F *)gPad->GetPrimitive("htemp");
 		// currentHist->SetTitle("Reaction Q");
 	}

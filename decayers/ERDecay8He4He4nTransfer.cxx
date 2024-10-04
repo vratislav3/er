@@ -34,13 +34,13 @@ ERDecay8He4He4nTransfer::ERDecay8He4He4nTransfer() : ERDecay("8He4He4nTransfer")
 													 fDecayFinish(kFALSE),
 													 fTargetReactZ(0.),
 													 fMinStep(0.01),
-													 f8He(NULL),
-													 f4He(NULL),
+													//  f8He(NULL),
+													//  f4He(NULL),
 													 //   f6Li(NULL),
 													 //   f4n (NULL),
 													 //   fn  (NULL),
-													 fIon8He(NULL),
-													 fIon4He(NULL),
+													 //  fIon8He(NULL),
+													 //  fIon4He(NULL),
 													 //   f4nMass(0.),
 													 //   fIs4nUserMassSet(false),
 													 //   fIs4nExcitationSet(false),
@@ -59,13 +59,13 @@ ERDecay8He4He4nTransfer::ERDecay8He4He4nTransfer() : ERDecay("8He4He4nTransfer")
 	FairRunSim *run = FairRunSim::Instance();
 	//   fUnstable4n = new FairIon("4n",  0, 4, 0);
 	//   fIon6Li     = new FairIon("6Li", 3, 6, 3);
-	fIon8He = new FairIon("8He", 2, 8, 2);
-	fIon4He = new FairIon("4He", 2, 4, 2);
-	std::cout << fIon4He->GetName() << std::endl;
+	// fIon8He = new FairIon("8He", 2, 8, 2);
+	// fIon4He = new FairIon("4He", 2, 4, 2);
+	// std::cout << fIon4He->GetName() << std::endl;
 	//   std::cout << "akdjfas" << std::endl;
-	run->AddNewIon(fIon8He);
-	run->AddNewIon(fIon4He);
-	std::cout << fIon4He->GetName() << std::endl;
+	// run->AddNewIon(fIon8He);
+	// run->AddNewIon(fIon4He);
+	// std::cout << fIon4He->GetName() << std::endl;
 
 	fLv8He = new TLorentzVector();
 	fLv4He = new TLorentzVector();
@@ -102,9 +102,12 @@ void ERDecay8He4He4nTransfer::Set8HeExcitation(Double_t excMean, Double_t fwhm, 
 void ERDecay8He4He4nTransfer::Print8HeExcitation()
 {
 
+	LOG(INFO) << "ERDecay8He4He4nTransfer::Print8HeExcitation" << FairLogger::endl;
+	std::cout << "\tfIs8HeExcitationSet = " << fIs8HeExcitationSet << std::endl;
+
 	for (Int_t i; i < f8HeExcitationStateMeanEnergy.size(); i++)
 	{
-		std::cout << i << "\t" << f8HeExcitationStateMeanEnergy[i]
+		std::cout << "\t" << i << "\t" << f8HeExcitationStateMeanEnergy[i]
 				  << "\t" << f8HeExcitationStateSigma[i]
 				  << "\t" << f8HeExcitationStateWeight[i]
 				  << std::endl;
@@ -115,23 +118,28 @@ void ERDecay8He4He4nTransfer::Print8HeExcitation()
 Bool_t ERDecay8He4He4nTransfer::Init()
 {
 
-	std::cout << "Decayer Init." << std::endl;
+	// std::cout << "Decayer Init." << std::endl;
+	LOG(INFO) << "[ERDecay8He4He4nTransfer::Init] started" << FairLogger::endl;
 
-	f8He = TDatabasePDG::Instance()->GetParticle("8He");
-	if (!f8He)
+	if (!G4IonTable::GetIonTable()->GetIon(2,8))
+	// f8He = TDatabasePDG::Instance()->GetParticle("8He");
+	// f8He->Print();
+	// if (!f8He)
 	{
-		std::cerr << "-W- ERDecay8He4He4nTransfer: Ion 8He not found in database!" << std::endl;
+		std::cerr << "-W- [ERDecay8He4He4nTransfer::Init]: Ion 8He not found in database!" << std::endl;
 		return kFALSE;
 	}
 
 	// f4He = TDatabasePDG::Instance()->GetParticle("4He");
-	std::cout << fIon4He->GetName() << std::endl;
-	f4He = TDatabasePDG::Instance()->GetParticle(fIon4He->GetName());
-	if (!f4He)
-	{
-		std::cerr << "-W- ERDecay8He4He4nTransfer: Ion 4He not found in database!" << std::endl;
-		return kFALSE;
-	}
+	// std::cout << fIon4He->GetName() << std::endl;
+	// f4He = TDatabasePDG::Instance()->GetParticle(fIon4He->GetName());
+	// f4He = TDatabasePDG::Instance()->GetParticle("Alpha");
+	// f4He->Print();
+	// if (!f4He)
+	// {
+	// 	std::cerr << "-W- ERDecay8He4He4nTransfer: Ion Alpha not found in database!" << std::endl;
+	// 	return kFALSE;
+	// }
 
 	// f4n = TDatabasePDG::Instance()->GetParticle("4n");
 	// if (!f4n)
@@ -209,6 +217,7 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 			// beam
 			TLorentzVector beam;
 			gMC->TrackMomentum(beam);
+			LOG(INFO) << "[ERDecay8He4He4nTransfer::Stepping] beam mass: " << beam.M() << FairLogger::endl;
 
 			if (beam.P() == 0)
 			{ // temporary fix of bug with zero kinetic energy
@@ -228,12 +237,16 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 			targetCM = target;
 			beamCM.Boost(-boost);
 			targetCM.Boost(-boost);
-			ECM = beamCM(3) + targetCM(3);
+			// ECM = beamCM(3) + targetCM(3);
+			// std::cout << ECM << std::endl;
+			ECM = beamCM.E() + targetCM.E();
+			// std::cout << ECM << std::endl;
 
 			Int_t reactionHappen = kFALSE;
 
 			//   Double_t decay4nMass;
-			  Int_t reactionAttempsCounter = 0;
+			Double_t excited8HeMass;
+			Int_t reactionAttempsCounter = 0;
 			Double_t excitation = 0; // excitation energy
 			while (reactionHappen == kFALSE)
 			{ // while reaction condition is not fullfilled
@@ -253,22 +266,27 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 					excitation = gRandom->Gaus(f8HeExcitationStateMeanEnergy[distribNum], f8HeExcitationStateSigma[distribNum]);
 					// fUnstable4n->SetExcEnergy(excitation);
 				}
-				Double_t Excited8HeMass = f8He->Mass() + excitation;
+				// Double_t Excited8HeMass = f8He->Mass() + excitation;
+				// 
+				excited8HeMass = G4IonTable::GetIonTable()->GetIonMass(2,8)/1000. + excitation;
+				Double_t alhpaRecoilMass = G4IonTable::GetIonTable()->GetIonMass(2,4)/1000.;
+				LOG(DEBUG) << "[ERDecay8He4He4nTransfer::Stepping] Excited8HeMass is " << excited8HeMass << FairLogger::endl;
 				//     const float li6_mass = G4IonTable::GetIonTable()->GetIon(3,6)->GetPDGMass() * 1e-3;
-				if ((ECM - f4He->Mass() - Excited8HeMass) > 0)
-				{	// выход из цикла while для PhaseGenerator
-					      reactionHappen = kTRUE;
-					      LOG(DEBUG) << "[ERDecay8He4He4nTransfer::Stepping] Reaction is happen" << std::endl;
+				if ((ECM - alhpaRecoilMass - excited8HeMass) > 0)
+				{ // выход из цикла while для PhaseGenerator
+					reactionHappen = kTRUE;
+					LOG(DEBUG) << "[ERDecay8He4He4nTransfer::Stepping] Reaction is happen" << FairLogger::endl;
 				}
 				reactionAttempsCounter++;
-				//     if (reactionAttempsCounter > 1000){
-				//       LOG(DEBUG) << "[ERDecay2H_6Li] Reaction is forbidden for this CM energy" << std::endl;
-				//       fDecayFinish = kTRUE;
-				//       return kTRUE;
-				//     }
-			}
+				if (reactionAttempsCounter > 1000)
+				{
+					LOG(DEBUG) << "[ERDecay8He4He4nTransfer::Stepping] Reaction is forbidden for this CM energy" << FairLogger::endl;
+					fDecayFinish = kTRUE;
+					return kTRUE;
+				}
+			}//while
 
-			ReactionPhaseGenerator(ECM);
+			ReactionPhaseGenerator(ECM, excited8HeMass);
 			fLv8He->Boost(boost);
 			fLv4He->Boost(boost);
 
@@ -282,13 +300,25 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 			Int_t He8BeamTrackNb, He8TrackNb, He4TrackNb;
 
 			He8BeamTrackNb = gMC->GetStack()->GetCurrentTrackNumber();
-			// std::cout << "He8TrackNb " << He8TrackNb << std::endl;
-			/*
-			gMC->GetStack()->PushTrack(1, He8TrackNb, f7H->PdgCode(),
-									   fLv7H->Px(), fLv7H->Py(), fLv7H->Pz(),
-									   fLv7H->E(), curPos.X(), curPos.Y(), curPos.Z(),
+			LOG(DEBUG2) << "[ERDecay8He4He4nTransfer::Stepping] He8BeamTrackNb " << He8BeamTrackNb << FairLogger::endl;
+
+			// gMC->GetStack()->PushTrack(1, He8BeamTrackNb, f8He->PdgCode(),
+			// 						   fLv8He->Px(), fLv8He->Py(), fLv8He->Pz(),
+			// 						   fLv8He->E(), curPos.X(), curPos.Y(), curPos.Z(),
+			// 						   gMC->TrackTime(), 0., 0., 0.,
+			// 						   kPDecay, He8TrackNb, 1, 0);
+
+			gMC->GetStack()->PushTrack(1, He8BeamTrackNb, G4IonTable::GetIonTable()->GetNucleusEncoding(2,8),
+									   fLv8He->Px(), fLv8He->Py(), fLv8He->Pz(),
+									   fLv8He->E(), curPos.X(), curPos.Y(), curPos.Z(),
 									   gMC->TrackTime(), 0., 0., 0.,
-									   kPDecay, H7TrackNb, decay7HMass, 0);*/
+									   kPDecay, He8TrackNb, 1, 0);
+
+			gMC->GetStack()->PushTrack(1, He8BeamTrackNb, G4IonTable::GetIonTable()->GetNucleusEncoding(2,4),
+									   fLv4He->Px(), fLv4He->Py(), fLv4He->Pz(),
+									   fLv4He->E(), curPos.X(), curPos.Y(), curPos.Z(),
+									   gMC->TrackTime(), 0., 0., 0.,
+									   kPDecay, He4TrackNb, 1, 0);
 
 			//   gMC->GetStack()->PushTrack(1, He8TrackNb, f6Li->PdgCode(),
 			//                              fLv6Li->Px(), fLv6Li->Py(), fLv6Li->Pz(),
@@ -371,15 +401,21 @@ void ERDecay8He4He4nTransfer::FinishEvent()
 }
 
 //-------------------------------------------------------------------------------------------------
-void ERDecay8He4He4nTransfer::ReactionPhaseGenerator(Double_t Ecm)
+void ERDecay8He4He4nTransfer::ReactionPhaseGenerator(Double_t Ecm, Double_t massOf8HeProduct)
 {
 	// particle 1: 4He (m1, E1)
 	// particle 2: 8He (m2, E2)
 
-	Double_t m1 = G4IonTable::GetIonTable()->GetIon(2, 4)->GetPDGMass() * 1e-3;
-	Double_t m2 = G4IonTable::GetIonTable()->GetIon(2, 8)->GetPDGMass() * 1e-3;
-	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] m1: " << m1 << FairLogger::endl;
+	Double_t m1 = G4IonTable::GetIonTable()->GetIonMass(2, 4) * 1e-3;
+	// Double_t m2 = G4IonTable::GetIonTable()->GetIonMass(2, 8) * 1e-3;
+	Double_t m2 = massOf8HeProduct;
+
+	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] m1(G4GetIonMass):\t " << m1 << FairLogger::endl;
+	// LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] m1(FairIon):\t " << fIon4He->GetMass() << FairLogger::endl;
+	// LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] m1(GetIonMass):\t " << G4IonTable::GetIonTable()->GetIonMass(2,4) << FairLogger::endl;
+	// LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] GetIonName:\t " << G4IonTable::GetIonTable()->GetIonName(2,8) << FairLogger::endl;
 	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] m2: " << m2 << FairLogger::endl;
+	// LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] m2: " << fIon8He->GetMass() << FairLogger::endl;
 	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] Ecm: " << Ecm << FairLogger::endl;
 
 	// Energy of 1-st particle in cm.
