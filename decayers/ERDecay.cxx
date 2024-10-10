@@ -125,7 +125,7 @@ Bool_t ERDecay::FindInteractionPoint() {
   if (!fIsInterationPointFound) {
     gGeoManager->FindNextBoundary(); // find a step to a next boudary along current track direction
     Double_t  distToNextBoundary = gGeoManager->GetStep(); // get calculated step
-    LOG(DEBUG) << "[ERDecay::FindInteractionPoint] distance to a next boundary " 
+    LOG(DEBUG2) << "[ERDecay::FindInteractionPoint] distance to a next boundary " 
               << distToNextBoundary <<  FairLogger::endl;
     Double_t interactionProbNextBound = 1 - TMath::Exp(-distToNextBoundary / 
                                                         fNuclearInteractionLength);
@@ -146,7 +146,7 @@ Bool_t ERDecay::FindInteractionPoint() {
     } else {
       fDistanceToInteractPoint = -TMath::Log(1 - fRnd2->Uniform(0, interactionProbNextBound)) 
                                * fNuclearInteractionLength;
-      LOG(DEBUG) << "[ERDecay::FindInteractionPoint] distance to an interaction point " 
+      LOG(DEBUG2) << "[ERDecay::FindInteractionPoint] distance to an interaction point " 
                 << "in current direction " << fDistanceToInteractPoint << FairLogger::endl;         
       fIsInterationPointFound = kTRUE;
       return kTRUE;

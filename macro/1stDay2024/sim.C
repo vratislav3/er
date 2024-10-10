@@ -23,8 +23,9 @@ using std::cout, std:: endl;
 #endif
 
 // void sim(Int_t events_count = 10)
-void sim(Int_t events_count = 1000)
+// void sim(Int_t events_count = 1000)
 // void sim(Int_t events_count = 10000)
+void sim(Int_t events_count = 100000)
 {
 
 	// Double_t CentTelzOffset = 0.;
@@ -63,10 +64,10 @@ void sim(Int_t events_count = 1000)
 	//-------Set LOG verbosity  -----------------------------------------------
 	// FairLogger::GetLogger()->SetLogScreenLevel("FATAL");
 	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG");
-	FairLogger::GetLogger()->SetLogScreenLevel("DEBUG2");
+	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG2");
 	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG2");
 	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG4");
-	// FairLogger::GetLogger()->SetLogScreenLevel("INFO");
+	FairLogger::GetLogger()->SetLogScreenLevel("INFO");
 	// FairLogger::GetLogger()->SetLogVerbosityLevel("VERYHIGH");
 	
 	// -----   Create simulation run   ----------------------------------------
@@ -276,9 +277,9 @@ void sim(Int_t events_count = 1000)
 	targetDecay->SetMinStep(1e-4);						//in cm
 	
 	// targetDecay->Set4nMass(massn4);
-	 targetDecay->Set8HeExcitation(0.002, 0.001, 1);
-	 targetDecay->Set8HeExcitation(0.004, 0.002, 2);
-	 targetDecay->Set8HeExcitation(0.009, 0.00412, 1);
+	 targetDecay->Set8HeExcitation(0.0031, 0.0006, 1);
+	//  targetDecay->Set8HeExcitation(0.004, 0.002, 2);
+	//  targetDecay->Set8HeExcitation(0.009, 0.00412, 1);
 
 	 targetDecay->Print8HeExcitation();
 

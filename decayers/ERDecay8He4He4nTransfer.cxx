@@ -32,7 +32,7 @@
 
 ERDecay8He4He4nTransfer::ERDecay8He4He4nTransfer() : ERDecay("8He4He4nTransfer"),
 													 fDecayFinish(kFALSE),
-													 fTargetReactZ(0.),
+													 //  fTargetReactZ(0.),
 													 fMinStep(0.01),
 													 //  f8He(NULL),
 													 //  f4He(NULL),
@@ -69,6 +69,16 @@ ERDecay8He4He4nTransfer::ERDecay8He4He4nTransfer() : ERDecay("8He4He4nTransfer")
 
 	fLv8He = new TLorentzVector();
 	fLv4He = new TLorentzVector();
+
+	fLv6He = new TLorentzVector();
+	fLvn1 = new TLorentzVector();
+	fLvn2 = new TLorentzVector();
+
+	fLv6HeCMdecay = new TLorentzVector();
+	fLvn1CMdecay = new TLorentzVector();
+	fLvn2CMdecay = new TLorentzVector();
+
+	fLvNN = new TLorentzVector();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -78,10 +88,21 @@ ERDecay8He4He4nTransfer::~ERDecay8He4He4nTransfer()
 	//     fDecayFile.close();
 	//   if (fDecayFilePath == ""){ // LV from TGenPhaseSpace will be deleted in TGenPhaseSpace
 
-	// TODO: delete fDecayPhaseSpace, following TLorentzVectors should be deleted automatically
+	delete fDecayPhaseSpace;
+
+	delete fLv8He;
+	delete fLv4He;
+
 	delete fLv6He;
 	delete fLvn1;
 	delete fLvn2;
+
+	delete fLv6HeCMdecay;
+	delete fLvn1CMdecay;
+	delete fLvn2CMdecay;
+
+	delete fLvNN;
+
 	//
 
 	//   delete fLvn3;
@@ -222,10 +243,10 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 			// beam
 			TLorentzVector beam;
 			gMC->TrackMomentum(beam);
-			LOG(INFO) << "[ERDecay8He4He4nTransfer::Stepping] beam mass: " << beam.M() << FairLogger::endl;
+			LOG(DEBUG2) << "[ERDecay8He4He4nTransfer::Stepping] Mass of beam: " << beam.M() << " GeV" << FairLogger::endl;
 
-			if (beam.P() == 0)
-			{ // temporary fix of bug with zero kinetic energy
+			if (beam.P() == 0) // TODO: solve this temporary fix of bug
+			{				   // temporary fix of bug with zero kinetic energy
 				return kTRUE;
 			}
 
@@ -275,17 +296,17 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 				//
 				excited8HeMass = G4IonTable::GetIonTable()->GetIonMass(2, 8) / 1000. + excitation;
 				Double_t alhpaRecoilMass = G4IonTable::GetIonTable()->GetIonMass(2, 4) / 1000.;
-				LOG(DEBUG) << "[ERDecay8He4He4nTransfer::Stepping] Excited8HeMass is " << excited8HeMass << FairLogger::endl;
+				LOG(DEBUG) << "[ERDecay8He4He4nTransfer::Stepping] Mass of 8He* product is " << excited8HeMass << " GeV" << FairLogger::endl;
 				//     const float li6_mass = G4IonTable::GetIonTable()->GetIon(3,6)->GetPDGMass() * 1e-3;
 				if ((ECM - alhpaRecoilMass - excited8HeMass) > 0)
 				{ // выход из цикла while для PhaseGenerator
 					reactionHappen = kTRUE;
-					LOG(DEBUG) << "[ERDecay8He4He4nTransfer::Stepping] Reaction is happen" << FairLogger::endl;
+					LOG(DEBUG) << "[ERDecay8He4He4nTransfer::Stepping] Reaction happened." << FairLogger::endl;
 				}
 				reactionAttempsCounter++;
 				if (reactionAttempsCounter > 1000)
 				{
-					LOG(DEBUG) << "[ERDecay8He4He4nTransfer::Stepping] Reaction is forbidden for this CM energy" << FairLogger::endl;
+					LOG(DEBUG) << "[ERDecay8He4He4nTransfer::Stepping] Reaction is forbidden for this CM energy." << FairLogger::endl;
 					fDecayFinish = kTRUE;
 					return kTRUE;
 				}
@@ -295,11 +316,14 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 			fLv8He->Boost(boost);
 			fLv4He->Boost(boost);
 
-			// 4n → n +n +n +n
+			// 8He → 6He + n + n
 			if (!DecayPhaseGenerator(excitation))
 			{
-				fDecayFinish = kTRUE;
-				return kTRUE;
+				LOG(WARNING) << "[ERDecay8He4He4nTransfer::Stepping] 3-body decay did not occur!!" << FairLogger::endl;
+				// fDecayFinish = kTRUE;
+				// FIXME: solve trouble with return from stepping without binary reaction
+				// very probably line "return kTRUE" should be commented
+				// return kTRUE;
 			}
 
 			//   Int_t He8TrackNb, tetraNTrackNb, Li6TrackNb, n1TrackNb, n2TrackNb, n3TrackNb, n4TrackNb;
@@ -315,30 +339,31 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 			// 						   gMC->TrackTime(), 0., 0., 0.,
 			// 						   kPDecay, He8TrackNb, 1, 0);
 
+			// TODO: create separated member function PushTrack
 			gMC->GetStack()->PushTrack(1, He8BeamTrackNb, G4IonTable::GetIonTable()->GetNucleusEncoding(2, 8),
 									   fLv8He->Px(), fLv8He->Py(), fLv8He->Pz(),
 									   fLv8He->E(), curPos.X(), curPos.Y(), curPos.Z(),
 									   gMC->TrackTime(), 0., 0., 0.,
 									   kPDecay, He8TrackNb, 1, 0);
 
-			gMC->GetStack()->PushTrack(1, He8BeamTrackNb, G4IonTable::GetIonTable()->GetNucleusEncoding(2, 4),
-									   fLv4He->Px(), fLv4He->Py(), fLv4He->Pz(),
-									   fLv4He->E(), curPos.X(), curPos.Y(), curPos.Z(),
-									   gMC->TrackTime(), 0., 0., 0.,
-									   kPDecay, He4TrackNb, 1, 0);
+			// gMC->GetStack()->PushTrack(1, He8BeamTrackNb, G4IonTable::GetIonTable()->GetNucleusEncoding(2, 4),
+			// 						   fLv4He->Px(), fLv4He->Py(), fLv4He->Pz(),
+			// 						   fLv4He->E(), curPos.X(), curPos.Y(), curPos.Z(),
+			// 						   gMC->TrackTime(), 0., 0., 0.,
+			// 						   kPDecay, He4TrackNb, 1, 0);
 
 			//   gMC->GetStack()->PushTrack(1, He8TrackNb, f6Li->PdgCode(),
 			//                              fLv6Li->Px(), fLv6Li->Py(), fLv6Li->Pz(),
 			//                              fLv6Li->E(), curPos.X(), curPos.Y(), curPos.Z(),
 			//                              gMC->TrackTime(), 0., 0., 0.,
 			//                              kPDecay, Li6TrackNb, f6Li->Mass(), 0);
-			
+
 			// gMC->GetStack()->PushTrack(1, He8TrackNb, 2112,		//TODO: get PDG code for neutron automatically
 			// 						   fLvn1->Px(), fLvn1->Py(), fLvn1->Pz(),
 			// 						   fLvn1->E(), curPos.X(), curPos.Y(), curPos.Z(),
 			// 						   gMC->TrackTime(), 0., 0., 0.,
 			// 						   kPDecay, n1TrackNb, 1, 0);
-			
+
 			//   gMC->GetStack()->PushTrack(1, He8TrackNb, fn->PdgCode(),
 			//                              fLvn2->Px(),fLvn2->Py(),fLvn2->Pz(),
 			//                              fLvn2->E(), curPos.X(), curPos.Y(), curPos.Z(),
@@ -356,10 +381,13 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 			//                              kPDecay, n4TrackNb, fn->Mass(), 0);
 			gMC->StopTrack();
 			fDecayFinish = kTRUE;
+			// TODO: check why MaxStep is set to 100. here
 			gMC->SetMaxStep(100.);
 
 			FairRunSim *run = FairRunSim::Instance();
-			if (TString(run->GetMCEventHeader()->ClassName()).Contains("ERDecayMCEventHeader"))
+			// TODO: it seems that this part has the same functionality as following
+			//  starting from if (TString(run->GetMCEventHeader()->Cla....
+			if (TString(run->GetMCEventHeader()->ClassName()).Contains("ERDecayMCEventHeader")) //TODO: delete this block
 			{
 				ERDecayMCEventHeader *header = (ERDecayMCEventHeader *)run->GetMCEventHeader();
 				header->SetReactionPos(curPos.Vect());
@@ -370,16 +398,17 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 				header->AddOutputParticle(n1TrackNb);
 				// header->AddOutputParticle(n2TrackNb);
 				// header->AddOutputParticle(n3TrackNb);
-				// header->AddOutputParticle(n4TrackNb);
 			}
+
 			if (TString(run->GetMCEventHeader()->ClassName()).Contains("ERDecay8He4He4nTransferEventHeader"))
 			{
 				ERDecay8He4He4nTransferEventHeader *header = (ERDecay8He4He4nTransferEventHeader *)run->GetMCEventHeader();
 				// TODO: check meaning of time here
-				fLvn1->Print();
 				header->SetData(curPos.Vect(),
 								beam, target, *fLv8He, *fLv4He,
 								*fLv6He, *fLvn1, *fLvn2,
+								*fLv6HeCMdecay, *fLvn1CMdecay, *fLvn2CMdecay,
+								*fLvNN, fE_T,
 								0., fTheta);
 				header->SetTrigger(1);
 			}
@@ -393,8 +422,22 @@ void ERDecay8He4He4nTransfer::BeginEvent()
 {
 	fDecayFinish = kFALSE;
 	fIsInterationPointFound = kFALSE;
-	fTargetReactZ = fRnd->Uniform(-fTargetThickness / 2, fTargetThickness / 2);
-	FairRunSim *run = FairRunSim::Instance();
+
+	fLv8He->SetXYZM(0., 0., 0., 0.);
+	fLv4He->SetXYZM(0., 0., 0., 0.);
+
+	fLv6He->SetPxPyPzE(0., 0., 0., 0.);
+	fLvn1->SetPxPyPzE(0., 0., 0., 0.);
+	fLvn2->SetPxPyPzE(0., 0., 0., 0.);
+
+	fLv6HeCMdecay->SetPxPyPzE(0., 0., 0., 0.);
+	fLvn1CMdecay->SetPxPyPzE(0., 0., 0., 0.);
+	fLvn2CMdecay->SetPxPyPzE(0., 0., 0., 0.);
+
+	fLvNN->SetPxPyPzE(0.,0.,0.,0);
+
+	// fTargetReactZ = fRnd->Uniform(-fTargetThickness / 2, fTargetThickness / 2);
+	// FairRunSim *run = FairRunSim::Instance();
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -416,25 +459,21 @@ void ERDecay8He4He4nTransfer::FinishEvent()
 //-------------------------------------------------------------------------------------------------
 void ERDecay8He4He4nTransfer::ReactionPhaseGenerator(Double_t Ecm, Double_t massOf8HeProduct)
 {
-	// particle 1: 4He (m1, E1)
-	// particle 2: 8He (m2, E2)
+	// particle 1: 4He (m1, E1), recoil
+	// particle 2: 8He (m2, E2), product
 
 	Double_t m1 = G4IonTable::GetIonTable()->GetIonMass(2, 4) * 1e-3;
 	// Double_t m2 = G4IonTable::GetIonTable()->GetIonMass(2, 8) * 1e-3;
 	Double_t m2 = massOf8HeProduct;
 
-	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] m1(G4GetIonMass):\t " << m1 << FairLogger::endl;
-	// LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] m1(FairIon):\t " << fIon4He->GetMass() << FairLogger::endl;
-	// LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] m1(GetIonMass):\t " << G4IonTable::GetIonTable()->GetIonMass(2,4) << FairLogger::endl;
-	// LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] GetIonName:\t " << G4IonTable::GetIonTable()->GetIonName(2,8) << FairLogger::endl;
-	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] m2: " << m2 << FairLogger::endl;
-	// LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] m2: " << fIon8He->GetMass() << FairLogger::endl;
-	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] Ecm: " << Ecm << FairLogger::endl;
+	LOG(DEBUG2) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] Mass of the recoil 4He: " << m1 << " GeV" << FairLogger::endl;
+	LOG(DEBUG2) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] Mass of the product 8He*: " << m2 << " GeV" << FairLogger::endl;
+	LOG(DEBUG3) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] Energy in CM system of the reaction: " << Ecm << " GeV" << FairLogger::endl;
 
 	// Energy of 1-st particle in cm.
 	// total energy of the first particle is calculated as
 	Double_t E1 = 0.5 * (Ecm * Ecm + m1 * m1 - m2 * m2) / Ecm;
-	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] E1: " << E1 << FairLogger::endl;
+	LOG(DEBUG2) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] Total energy of 4He: " << E1 << " GeV" << FairLogger::endl;
 
 	// Impulse in CM
 	Double_t Pcm = TMath::Sqrt(E1 * E1 - m1 * m1);
@@ -442,30 +481,29 @@ void ERDecay8He4He4nTransfer::ReactionPhaseGenerator(Double_t Ecm, Double_t mass
 	Double_t thetaCM;
 	if (!fADInput)
 	{ // if file with angular distribution isn't setted than isotropic distribution is generated
-		// LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] default isotropic distrubution" << FairLogger::endl;
-		LOG(INFO) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] default isotropic distrubution" << FairLogger::endl;
+		LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] default isotropic distribution" << FairLogger::endl;
 		thetaCM = TMath::ACos(gRandom->Uniform(-1, 1));
 	}
 	else
 	{
-		LOG(INFO) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] distrubution from defined fADFunction" << FairLogger::endl;
+		LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] distribution from defined fADFunction" << FairLogger::endl;
 		thetaCM = fADFunction->GetRandom(fThetaMin, fThetaMax) * TMath::DegToRad();
 	}
 	fTheta = thetaCM;
 	Double_t phi = gRandom->Uniform(0., 2. * TMath::Pi());
-	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] Pcm: " << Pcm << FairLogger::endl;
-	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] theta: " << thetaCM << FairLogger::endl;
-	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] phi: " << phi << FairLogger::endl;
 	TVector3 Pcmv;
 	Pcmv.SetMagThetaPhi(Pcm, thetaCM, phi);
-	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] Pcm: " << Pcmv.Mag() << FairLogger::endl;
-	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] thetaCM: " << Pcmv.Theta() << FairLogger::endl;
-	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] phi: " << Pcmv.Phi() << FairLogger::endl;
 
-	fLv8He->SetXYZM(0., 0., 0., 0.);
-	fLv4He->SetXYZM(0., 0., 0., 0.);
 	fLv8He->SetXYZM(Pcmv(0), Pcmv(1), Pcmv(2), m2);
 	fLv4He->SetXYZM(-Pcmv(0), -Pcmv(1), -Pcmv(2), m1);
+
+	LOG(DEBUG2) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] Pcm(8He): " << fLv8He->P() << FairLogger::endl;
+	LOG(DEBUG2) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] thetaCM(8He): " << fLv8He->Theta() << FairLogger::endl;
+	LOG(DEBUG2) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] phi(8He): " << fLv8He->Phi() << FairLogger::endl;
+
+	LOG(DEBUG2) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] Pcm(4He): " << fLv4He->P() << FairLogger::endl;
+	LOG(DEBUG2) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] thetaCM(4He): " << fLv4He->Theta() << FairLogger::endl;
+	LOG(DEBUG2) << "[ERDecay8He4He4nTransfer::ReactionPhaseGenerator] phi(4He): " << fLv4He->Phi() << FairLogger::endl;
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -479,21 +517,63 @@ Bool_t ERDecay8He4He4nTransfer::DecayPhaseGenerator(const Double_t excitation)
 	Double_t decayMasses[3];
 	// mass of 6He
 	decayMasses[0] = G4IonTable::GetIonTable()->GetIonMass(2, 6) / 1000.;
-	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::DecayPhaseGenerator] mass of 6He is "
-			   << decayMasses[0] << " GeV" << FairLogger::endl;
+	LOG(DEBUG2) << "[ERDecay8He4He4nTransfer::DecayPhaseGenerator] mass of 6He is "
+				<< decayMasses[0] << " GeV" << FairLogger::endl;
 	// mass of neutron
 	decayMasses[1] = G4IonTable::GetIonTable()->GetIonMass(0, 1) / 1000.;
 	decayMasses[2] = G4IonTable::GetIonTable()->GetIonMass(0, 1) / 1000.;
-	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::DecayPhaseGenerator] mass of neutron is " << decayMasses[1] << " GeV" << FairLogger::endl;
+	LOG(DEBUG2) << "[ERDecay8He4He4nTransfer::DecayPhaseGenerator] mass of neutron is " << decayMasses[1] << " GeV" << FairLogger::endl;
+
+	Double_t decayThreshold = decayMasses[0] + decayMasses[1] + decayMasses[2];
+	if (excitation + G4IonTable::GetIonTable()->GetIonMass(2, 8) / 1000. < decayThreshold)
+	{
+		LOG(WARNING) << "[ERDecay8He4He4nTransfer::DecayPhaseGenerator] excitation of 8He is below 3-body decay threshold: "
+				  << excitation * 1000. << " MeV < "
+				  << decayThreshold * 1000. - G4IonTable::GetIonTable()->GetIonMass(2, 8) << " MeV"
+				  << FairLogger::endl;
+		return kFALSE;
+	}
 
 	fDecayPhaseSpace->SetDecay(*fLv8He, 3, decayMasses);
+	//TODO: save the outpupt of Generate into eventHeader 
+	// and investigate its distribution
+	// pay attention that TGenPhaseSpace is not perfectly working
 	fDecayPhaseSpace->Generate();
 
-	fLv6He = fDecayPhaseSpace->GetDecay(0);
-	fLvn1 = fDecayPhaseSpace->GetDecay(1);
-	fLvn2 = fDecayPhaseSpace->GetDecay(2);
-	// std::cout << DEBUG << std::endl;
-	fLvn1->Print();
+	// FIXME: do it like following
+	*fLv6He = *(fDecayPhaseSpace->GetDecay(0));
+	*fLvn1 = *(fDecayPhaseSpace->GetDecay(1));
+	*fLvn2 = *(fDecayPhaseSpace->GetDecay(2));
+	// fLv6He = fDecayPhaseSpace->GetDecay(0);
+	// fLvn1 = fDecayPhaseSpace->GetDecay(1);
+	// fLvn2 = fDecayPhaseSpace->GetDecay(2);
+
+	const TVector3 boostCMdecay = fLv8He->BoostVector();
+
+	// TODO: it is possible that following objects shouldn't be created here
+	//   but in more general place (e.g. BeginEvent or constructor)
+	// fLv6HeCMdecay = new TLorentzVector(*fLv6He);
+	// fLvn1CMdecay = new TLorentzVector(*fLvn1);
+	// fLvn2CMdecay = new TLorentzVector(*fLvn2);
+
+	*fLv6HeCMdecay = *fLv6He;
+	*fLvn1CMdecay = *fLvn1;
+	*fLvn2CMdecay = *fLvn2;
+
+	fLv6HeCMdecay->Boost(-boostCMdecay);
+	fLvn1CMdecay->Boost(-boostCMdecay);
+	fLvn2CMdecay->Boost(-boostCMdecay);
+
+	//epsilon = E_{nn}/E_T
+	fE_T = fLv6HeCMdecay->E() - fLv6HeCMdecay->M()
+					+ fLvn1CMdecay->E() - fLvn1CMdecay->M()
+					+ fLvn2CMdecay->E() - fLvn2CMdecay->M();
+	*fLvNN = *fLvn1CMdecay + *fLvn2CMdecay;
+	// Double_t epsilon = (fLvNN->E() - fLvNN->M())/fE_T;
+
+	// std::cout << epsilon << "\t" << fLvNN->P() << "\t" << fLvNN->M() << std::endl;
+
+
 
 	return kTRUE;
 	// }

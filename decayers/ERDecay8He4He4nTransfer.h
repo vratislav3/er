@@ -66,6 +66,7 @@ private:
 	// TParticlePDG *f4He;
 	// TParticlePDG *f4n;
 	
+	//in LAB
 	TLorentzVector *fLv8He; //!		product of 4n transfer
 	TLorentzVector *fLv4He;	//!		recoil
 	Float_t fTheta;			//!		theta of reaction (in CM or LAB?)
@@ -74,6 +75,14 @@ private:
 	TLorentzVector *fLvn1;	//!		neutron from 8He decay
 	TLorentzVector *fLvn2;	//!		neutron from 8He decay
 
+	//in CM of decay
+	TLorentzVector *fLv6HeCMdecay;	//!		6He from 8He decay
+	TLorentzVector *fLvn1CMdecay;	//!		neutron from 8He decay
+	TLorentzVector *fLvn2CMdecay;	//!		neutron from 8He decay
+
+	Float_t fE_T;	//!	energy over the 3-body decay threshold
+	TLorentzVector *fLvNN;	//!	system of two neutrons in CM of decay
+
 	// FairIon *fIon8He;
 	// FairIon *fIon4He;
 
@@ -81,10 +90,10 @@ private:
 	
 	//TODO:  check its functionality, it should be changed for our analytical formulae
 	TGenPhaseSpace *fDecayPhaseSpace;	
-	Double_t fTargetReactZ;
+	// Double_t fTargetReactZ;
 	Double_t fMinStep;
 	Double_t fTargetThickness;
-	Bool_t fDecayFinish;
+	Bool_t fDecayFinish;		//TODO: rename, e.g. fReactionFinished or fReactionOccured
 
 	std::vector<Double_t> f8HeExcitationStateMeanEnergy;
 	std::vector<Double_t> f8HeExcitationStateSigma;
