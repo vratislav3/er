@@ -37,6 +37,10 @@ public:
 	 ** @param ADfile  file with angular distribution.
 	 **/
 	void SetAngularDistribution(TString ADfile);
+	void PushTracks(TLorentzVector currentPosition);
+	void PushTrack(Int_t toBeDone, Int_t parentId, Int_t pdgCode,
+				   TLorentzVector *particle, TLorentzVector currentPosition,
+				   Double_t time, Int_t &trackNumber);
 
 	void Print8HeExcitation();
 
@@ -65,40 +69,40 @@ private:
 	// TParticlePDG *f8He;
 	// TParticlePDG *f4He;
 	// TParticlePDG *f4n;
-	
-	//in LAB
+
+	// in LAB
 	TLorentzVector *fLv8He; //!		product of 4n transfer
-	TLorentzVector *fLv4He;	//!		recoil
+	TLorentzVector *fLv4He; //!		recoil
 	Float_t fTheta;			//!		theta of reaction (in CM or LAB?)
-	
-	TLorentzVector *fLv6He;	//!		6He from 8He decay
+
+	TLorentzVector *fLv6He; //!		6He from 8He decay
 	TLorentzVector *fLvn1;	//!		neutron from 8He decay
 	TLorentzVector *fLvn2;	//!		neutron from 8He decay
 
-	//in CM of decay
-	TLorentzVector *fLv6HeCMdecay;	//!		6He from 8He decay
-	TLorentzVector *fLvn1CMdecay;	//!		neutron from 8He decay
-	TLorentzVector *fLvn2CMdecay;	//!		neutron from 8He decay
+	// in CM of decay
+	TLorentzVector *fLv6HeCMdecay; //!		6He from 8He decay
+	TLorentzVector *fLvn1CMdecay;  //!		neutron from 8He decay
+	TLorentzVector *fLvn2CMdecay;  //!		neutron from 8He decay
 
-	Float_t fE_T;	//!	energy over the 3-body decay threshold
-	TLorentzVector *fLvNN;	//!	system of two neutrons in CM of decay
+	Float_t fE_T;		   //!	energy over the 3-body decay threshold
+	TLorentzVector *fLvNN; //!	system of two neutrons in CM of decay
 
 	// FairIon *fIon8He;
 	// FairIon *fIon4He;
 
-	// TGenPhaseSpace *fReactionPhaseSpace;	
-	
-	//TODO:  check its functionality, it should be changed for our analytical formulae
-	TGenPhaseSpace *fDecayPhaseSpace;	
+	// TGenPhaseSpace *fReactionPhaseSpace;
+
+	// TODO:  check its functionality, it should be changed for our analytical formulae
+	TGenPhaseSpace *fDecayPhaseSpace;
 	// Double_t fTargetReactZ;
 	Double_t fMinStep;
 	Double_t fTargetThickness;
-	Bool_t fDecayFinish;		//TODO: rename, e.g. fReactionFinished or fReactionOccured
+	Bool_t fDecayFinish; // TODO: rename, e.g. fReactionFinished or fReactionOccured
 
 	std::vector<Double_t> f8HeExcitationStateMeanEnergy;
 	std::vector<Double_t> f8HeExcitationStateSigma;
 	std::vector<Double_t> f8HeExcitationStateWeight;
-	
+
 	Bool_t fIs8HeExcitationSet;
 
 	// Double_t f4nMass;

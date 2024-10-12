@@ -22,10 +22,10 @@ using std::cout, std:: endl;
 
 #endif
 
-// void sim(Int_t events_count = 10)
+void sim(Int_t events_count = 10)
 // void sim(Int_t events_count = 1000)
 // void sim(Int_t events_count = 10000)
-void sim(Int_t events_count = 100000)
+// void sim(Int_t events_count = 100000)
 {
 
 	// Double_t CentTelzOffset = 0.;
@@ -63,11 +63,10 @@ void sim(Int_t events_count = 100000)
 	
 	//-------Set LOG verbosity  -----------------------------------------------
 	// FairLogger::GetLogger()->SetLogScreenLevel("FATAL");
+	FairLogger::GetLogger()->SetLogScreenLevel("INFO");
 	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG");
 	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG2");
-	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG2");
 	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG4");
-	FairLogger::GetLogger()->SetLogScreenLevel("INFO");
 	// FairLogger::GetLogger()->SetLogVerbosityLevel("VERYHIGH");
 	
 	// -----   Create simulation run   ----------------------------------------
@@ -243,6 +242,8 @@ void sim(Int_t events_count = 100000)
 
 	Int_t Z = 2, A = 8, Q = 2;
 	TString ionName = "8He";
+	// Int_t Z = 2, A = 6, Q = 2;
+	// TString ionName = "6He";
 	ERIonMixGenerator *generator = new ERIonMixGenerator(ionName, Z, A, Q, 1);
 	Double32_t kin_energy = kinE_MevPerNucleon * 1e-3 * A; //in GeV
 	
