@@ -33,18 +33,7 @@
 
 ERDecay8He4He4nTransfer::ERDecay8He4He4nTransfer() : ERDecay("8He4He4nTransfer"),
 													 fDecayFinish(kFALSE),
-													 //  fTargetReactZ(0.),
 													 fMinStep(0.01),
-													 //  f8He(NULL),
-													 //  f4He(NULL),
-													 //   f6Li(NULL),
-													 //   f4n (NULL),
-													 //   fn  (NULL),
-													 //  fIon8He(NULL),
-													 //  fIon4He(NULL),
-													 //   f4nMass(0.),
-													 //   fIs4nUserMassSet(false),
-													 //   fIs4nExcitationSet(false),
 													 fADInput(NULL),
 													 fADFunction(NULL)
 //   fDecayFilePath(""),
@@ -57,15 +46,6 @@ ERDecay8He4He4nTransfer::ERDecay8He4He4nTransfer() : ERDecay("8He4He4nTransfer")
 	//   fRnd2->SetSeed();
 	// fReactionPhaseSpace = new TGenPhaseSpace();
 	fDecayPhaseSpace = new TGenPhaseSpace();
-	//   fUnstable4n = new FairIon("4n",  0, 4, 0);
-	//   fIon6Li     = new FairIon("6Li", 3, 6, 3);
-	// fIon8He = new FairIon("8He", 2, 8, 2);
-	// fIon4He = new FairIon("4He", 2, 4, 2);
-	// std::cout << fIon4He->GetName() << std::endl;
-	//   std::cout << "akdjfas" << std::endl;
-	// run->AddNewIon(fIon8He);
-	// run->AddNewIon(fIon4He);
-	// std::cout << fIon4He->GetName() << std::endl;
 
 	fLv8He = new TLorentzVector();
 	fLv4He = new TLorentzVector();
@@ -100,9 +80,9 @@ ERDecay8He4He4nTransfer::ERDecay8He4He4nTransfer() : ERDecay("8He4He4nTransfer")
 	FairRunSim *run = FairRunSim::Instance();
 
 	FairIon *fIon6He = new FairIon("6He", 2, 6, 2);
-	run->AddNewIon(fIon6He);
-
 	FairIon *fIon8He = new FairIon("8He", 2, 8, 2);
+
+	run->AddNewIon(fIon6He);
 	run->AddNewIon(fIon8He);
 
 	LOG(INFO) << "[ERDecay8He4He4nTransfer::ERDecay8He4He4nTransfer()] object " << GetName() << " created" << FairLogger::endl;
@@ -166,12 +146,6 @@ Bool_t ERDecay8He4He4nTransfer::Init()
 {
 
 	LOG(INFO) << "[ERDecay8He4He4nTransfer::Init] started" << FairLogger::endl;
-
-	// if (!G4IonTable::GetIonTable()->GetIon(2, 8))
-	// {
-	// 	std::cerr << "-W- [ERDecay8He4He4nTransfer::Init]: Ion 8He not found in database!" << std::endl;
-	// 	return kFALSE;
-	// }
 
 	// check if all particles participating in reaction (and decay) are in TDatabasePDG
 	TParticlePDG *p8He = TDatabasePDG::Instance()->GetParticle("8He");
@@ -651,6 +625,8 @@ void ERDecay8He4He4nTransfer::PushTracks(TLorentzVector currentPosition)
 	He8BeamTrackNb = gMC->GetStack()->GetCurrentTrackNumber();
 	LOG(DEBUG2) << "[ERDecay8He4He4nTransfer::Stepping] He8BeamTrackNb " << He8BeamTrackNb << FairLogger::endl;
 
+	//TODO: treat the different tracks for different scenarios
+
 	// binary reaction
 	PushTrack(1, He8BeamTrackNb,
 			  G4IonTable::GetIonTable()->GetNucleusEncoding(2, 8),
@@ -667,7 +643,6 @@ void ERDecay8He4He4nTransfer::PushTracks(TLorentzVector currentPosition)
 			  //   1000020060,
 			  fLv6He, currentPosition, gMC->TrackTime(), He6TrackNb);
 
-	// TODO: get PDG code for neutron automatically
 	PushTrack(1, He8TrackNb,
 			  TDatabasePDG::Instance()->GetParticle("neutron")->PdgCode(),
 			  fLvn1, currentPosition, gMC->TrackTime(), n1TrackNb);
@@ -677,10 +652,6 @@ void ERDecay8He4He4nTransfer::PushTracks(TLorentzVector currentPosition)
 			  //   TDatabasePDG::Instance()->GetParticle("neutron")->PdgCode(),
 			  fLvn2, currentPosition, gMC->TrackTime(), n2TrackNb);
 
-	// gMC->StopTrack();
-	// fDecayFinish = kTRUE;
-	// // TODO: check why MaxStep is set to 100. here
-	// gMC->SetMaxStep(100.);
 }
 
 //-------------------------------------------------------------------------------------------------

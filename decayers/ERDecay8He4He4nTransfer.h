@@ -66,10 +66,6 @@ private:
 	TRandom3 *fRnd;
 	// TRandom3 *fRnd2;
 
-	// TParticlePDG *f8He;
-	// TParticlePDG *f4He;
-	// TParticlePDG *f4n;
-
 	// in LAB
 	TLorentzVector *fLv8He; //!		product of 4n transfer
 	TLorentzVector *fLv4He; //!		recoil
@@ -87,14 +83,8 @@ private:
 	Float_t fE_T;		   //!	energy over the 3-body decay threshold
 	TLorentzVector *fLvNN; //!	system of two neutrons in CM of decay
 
-	// FairIon *fIon8He;
-	// FairIon *fIon4He;
-
-	// TGenPhaseSpace *fReactionPhaseSpace;
-
 	// TODO:  check its functionality, it should be changed for our analytical formulae
 	TGenPhaseSpace *fDecayPhaseSpace;
-	// Double_t fTargetReactZ;
 	Double_t fMinStep;
 	Double_t fTargetThickness;
 	Bool_t fDecayFinish; // TODO: rename, e.g. fReactionFinished or fReactionOccured
@@ -104,9 +94,6 @@ private:
 	std::vector<Double_t> f8HeExcitationStateWeight;
 
 	Bool_t fIs8HeExcitationSet;
-
-	// Double_t f4nMass;
-	// Bool_t fIs4nUserMassSet;
 
 	// TString fDecayFilePath;
 	// Double_t fDecayFileExcitation = 1. /*[GeV]*/;
