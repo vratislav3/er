@@ -58,7 +58,7 @@ private:
 	 **/
 	void ReactionPhaseGenerator(Double_t Ecm, Double_t massOf8HeProduct);
 
-	Bool_t DecayPhaseGenerator(Double_t excitation);
+	void DecayPhaseGenerator(Double_t excitation);
 
 	std::vector<TLorentzVector> ReadDecayEvent();
 
@@ -87,13 +87,17 @@ private:
 	TGenPhaseSpace *fDecayPhaseSpace;
 	Double_t fMinStep;
 	Double_t fTargetThickness;
-	Bool_t fDecayFinish; // TODO: rename, e.g. fReactionFinished or fReactionOccured
+	
+	//
+	Bool_t fProcessFinished; // TODO: rename, e.g. fReactionFinished or fReactionOccured
+	Bool_t fDecayOccured;
 
 	std::vector<Double_t> f8HeExcitationStateMeanEnergy;
 	std::vector<Double_t> f8HeExcitationStateSigma;
 	std::vector<Double_t> f8HeExcitationStateWeight;
 
 	Bool_t fIs8HeExcitationSet;
+	// Bool_t fIsGroundStateSet;
 
 	// TString fDecayFilePath;
 	// Double_t fDecayFileExcitation = 1. /*[GeV]*/;

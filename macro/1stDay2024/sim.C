@@ -18,12 +18,12 @@
 
 #include <iostream>
 
-using std::cout, std:: endl;
+using std::cout, std::endl;
 
 #endif
 
-void sim(Int_t events_count = 10)
-// void sim(Int_t events_count = 1000)
+// void sim(Int_t events_count = 10)
+void sim(Int_t events_count = 1000)
 // void sim(Int_t events_count = 10000)
 // void sim(Int_t events_count = 100000)
 {
@@ -46,21 +46,21 @@ void sim(Int_t events_count = 10)
 	TString workDirPath = gSystem->Getenv("VMCWORKDIR");
 	TString outFile = workDirPath + "/macro/1stDay2024/rootfiles/sim.root";
 	TString parFile = workDirPath + "/macro/1stDay2024/rootfiles/par.root";
-	
-	//target
-	// TString targetGeoFileName = workDirPath + "/geometry/target.4He.gas.root";
+
+	// target
+	//  TString targetGeoFileName = workDirPath + "/geometry/target.4He.gas.root";
 	TString targetGeoFileName = workDirPath + "/geometry/target.Vacuum.geo.root";
 
-	//detectors
-	// TString paramFileQTelescope = "/home/muzalevskii/work/macro/exp2024/sim/xml/QTelescopeParts.xml";
-	// TString paramFileBeamDet = "/home/muzalevskii/work/macro/exp2024/sim/xml/BeamDetParts.xml";
-	// TString frameGeoFileName = "/home/muzalevskii/work/macro/exp2024/sim/geo/housingFrames.root";
-	// TString ndGeoFileName = "/home/muzalevskii/work/macro/exp2024/sim/geo/ND.geo.exp1904.root";
+	// detectors
+	//  TString paramFileQTelescope = "/home/muzalevskii/work/macro/exp2024/sim/xml/QTelescopeParts.xml";
+	//  TString paramFileBeamDet = "/home/muzalevskii/work/macro/exp2024/sim/xml/BeamDetParts.xml";
+	//  TString frameGeoFileName = "/home/muzalevskii/work/macro/exp2024/sim/geo/housingFrames.root";
+	//  TString ndGeoFileName = "/home/muzalevskii/work/macro/exp2024/sim/geo/ND.geo.exp1904.root";
 
 	// -----   Timer   --------------------------------------------------------
 	TStopwatch timer;
 	timer.Start();
-	
+
 	//-------Set LOG verbosity  -----------------------------------------------
 	// FairLogger::GetLogger()->SetLogScreenLevel("FATAL");
 	FairLogger::GetLogger()->SetLogScreenLevel("INFO");
@@ -68,23 +68,23 @@ void sim(Int_t events_count = 10)
 	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG2");
 	// FairLogger::GetLogger()->SetLogScreenLevel("DEBUG4");
 	// FairLogger::GetLogger()->SetLogVerbosityLevel("VERYHIGH");
-	
+
 	// -----   Create simulation run   ----------------------------------------
 	ERRunSim *run = new ERRunSim();
 	run->SetName("TGeant4");			// Transport engine
 	run->SetOutputFile(outFile.Data()); // Output file
-	
+
 	// ------------------------------------------------------------------------
 	// -----   Runtime database   ---------------------------------------------
 	FairRuntimeDb *rtdb = run->GetRuntimeDb();
-	
+
 	//-------- Set MC event header --------------------------------------------
 	ERDecay8He4He4nTransferEventHeader *decayMCheader = new ERDecay8He4He4nTransferEventHeader();
 	run->SetMCEventHeader(decayMCheader);
-	
+
 	// -----   Create media   -------------------------------------------------
 	run->SetMaterials("media.geo"); // Materials
-	
+
 	// -----   Create detectors  ----------------------------------------------
 	FairModule *cave = new ERCave("CAVE");
 	cave->SetGeometryFileName("cave.geo");
@@ -94,7 +94,7 @@ void sim(Int_t events_count = 10)
 	// -----  BeamDet Setup ---------------------------------------------------
 	// ERBeamDetSetup *setupBeamDet = ERBeamDetSetup::Instance();
 	// setupBeamDet->SetXmlParametersFile(paramFileBeamDet);
-	// 
+	//
 	// // -----  BeamDet parameters ----------------------------------------------
 	// setupBeamDet->AddToF("ToF1", BeamDetPosZToF - BeamDetLToF);
 	// setupBeamDet->AddToF("ToF2", BeamDetPosZToF);	  //  BeamDet parts should be added in ascending order
@@ -103,7 +103,7 @@ void sim(Int_t events_count = 10)
 	//
 	// setupBeamDet->AddMWPC("MWPC2", BeamDetPosZ2MWPC);
 	// setupBeamDet->SetMWPCnumberingInvOrderX();
-	// 
+	//
 	// // setupBeamDet->SetSensitiveTarget();
 
 	// -----   Create housing frames  -------------------------------------------------
@@ -130,7 +130,7 @@ void sim(Int_t events_count = 10)
 	// z = 17.3 + 1.5;
 	// TVector3 fZeroRotation(0., 0., 0.);
 	// TVector3 fMyRotation(0., 0., 0.);
-	// 
+	//
 	// ERGeoSubAssembly *assembly_1 = new ERGeoSubAssembly("Telescope_1", TVector3(-x, y, z), fMyRotation);
 	// ERQTelescopeGeoComponentSingleSi *thin1 = new ERQTelescopeGeoComponentSingleSi("SingleSi", "SingleSi_SSD20_1",
 	// 																			   TVector3(0.22, -0.27, -1.5), TVector3(), "X");
@@ -144,7 +144,7 @@ void sim(Int_t events_count = 10)
 	// assembly_1->AddComponent(thin1_1);
 	// assembly_1->AddComponent(thick1);
 	// assembly_1->AddComponent(veto1);
-	// 
+	//
 	// setupQTelescope->AddSubAssembly(assembly_1);
 
 	// ----- 2 parameters ----------------------------------------------------
@@ -157,12 +157,12 @@ void sim(Int_t events_count = 10)
 	// 																				TVector3(0., 0., 1.), TVector3(), "Y");
 	// ERQTelescopeGeoComponentSingleSi *veto2 = new ERQTelescopeGeoComponentSingleSi("SingleSi", "SingleSi_SSD_V_2",
 	// 																			   TVector3(0., 0., 2.0), TVector3(), "X");
-	// 
+	//
 	// assembly_2->AddComponent(thin2);
 	// assembly_2->AddComponent(thin2_2);
 	// assembly_2->AddComponent(thick2);
 	// assembly_2->AddComponent(veto2);
-	// 
+	//
 	// setupQTelescope->AddSubAssembly(assembly_2);
 
 	// // ----- CENTRAL parameters ----------------------------------------------------
@@ -173,17 +173,17 @@ void sim(Int_t events_count = 10)
 	// yPos = 0.;
 	// zPos = radius * TMath::Cos(rotationC.Y() * TMath::DegToRad());
 	// ERGeoSubAssembly *assembly_Central = new ERGeoSubAssembly("Central_telescope", TVector3(xPos, yPos, zPos), rotationC);
-	// 
+	//
 	// ERQTelescopeGeoComponentDoubleSi *thin_Central = new ERQTelescopeGeoComponentDoubleSi("DoubleSi", "DoubleSi_DSD_CT1",
 	// 																					  TVector3(0., 0., -5.), TVector3(), "Y");
 	// ERQTelescopeGeoComponentDoubleSi *thick_Central = new ERQTelescopeGeoComponentDoubleSi("DoubleSi", "DoubleSi_DSD_CT2",
 	// 																					   TVector3(0., 0., -2.9), TVector3(), "X");
 	// ERQTelescopeGeoComponentCsI *csi = new ERQTelescopeGeoComponentCsI("CsI", "CsI", TVector3(0., 0., 0.), TVector3());
-	// 
+	//
 	// assembly_Central->AddComponent(thin_Central);
 	// assembly_Central->AddComponent(thick_Central);
 	// assembly_Central->AddComponent(csi);
-	// 
+	//
 	// setupQTelescope->AddSubAssembly(assembly_Central);
 
 	// ----- 3 parameters ----------------------------------------------------
@@ -196,12 +196,12 @@ void sim(Int_t events_count = 10)
 	// 																				TVector3(0., 0., 1.), TVector3(), "X");
 	// ERQTelescopeGeoComponentSingleSi *veto3 = new ERQTelescopeGeoComponentSingleSi("SingleSi", "SingleSi_SSD_V_3",
 	// 																			   TVector3(0., 0., 2.0), TVector3(), "Y");
-	// 
+	//
 	// assembly_3->AddComponent(thin3);
 	// assembly_3->AddComponent(thin3_3);
 	// assembly_3->AddComponent(thick3);
 	// assembly_3->AddComponent(veto3);
-	// 
+	//
 	// setupQTelescope->AddSubAssembly(assembly_3);
 
 	// ----- 4 parameters ----------------------------------------------------
@@ -214,42 +214,42 @@ void sim(Int_t events_count = 10)
 	// 																				TVector3(0., 0., 1.), TVector3(), "Y");
 	// ERQTelescopeGeoComponentSingleSi *veto4 = new ERQTelescopeGeoComponentSingleSi("SingleSi", "SingleSi_SSD_V_4",
 	// 																			   TVector3(0., 0., 2.0), TVector3(), "X");
-	// 
+	//
 	// assembly_4->AddComponent(thin4);
 	// assembly_4->AddComponent(thin4_4);
 	// assembly_4->AddComponent(thick4);
 	// assembly_4->AddComponent(veto4);
-	// 
+	//
 	// setupQTelescope->AddSubAssembly(assembly_4);
-	
+
 	// ------QTelescope -------------------------------------------------------
 	// ERTelescope *qtelescope = new ERTelescope("ERQTelescope", kTRUE, verbose);
 	// run->AddModule(qtelescope);
-	
+
 	// ------BeamDet ----------------------------------------------------------
 	// ERBeamDet *beamdet = new ERBeamDet("ERBeamDet", kTRUE, verbose);
 	// run->AddModule(beamdet);
-	
+
 	// ------ND ---------------------------------------------------------------
 	// ERND *nd = new ERND("ERND", kTRUE, verbose);
 	// nd->SetGeometryFileName(ndGeoFileName);
 	// run->AddModule(nd);
 	//-------------------------------------------------------------------------
-	
+
 	FairPrimaryGenerator *primGen = new FairPrimaryGenerator();
 
-	Double_t kinE_MevPerNucleon = 25.7;	//in MeV
+	Double_t kinE_MevPerNucleon = 25.7; // in MeV
 
 	Int_t Z = 2, A = 8, Q = 2;
 	TString ionName = "8He";
 	// Int_t Z = 2, A = 6, Q = 2;
 	// TString ionName = "6He";
 	ERIonMixGenerator *generator = new ERIonMixGenerator(ionName, Z, A, Q, 1);
-	Double32_t kin_energy = kinE_MevPerNucleon * 1e-3 * A; //in GeV
-	
-	//monoenergetic beam
+	Double32_t kin_energy = kinE_MevPerNucleon * 1e-3 * A; // in GeV
+
+	// monoenergetic beam
 	generator->SetKinERange(kin_energy, kin_energy);
-	
+
 	// generator->SetKinESigma(kin_energy, 0.00405);
 
 	generator->SetThetaSigma(0., 0.);
@@ -273,18 +273,19 @@ void sim(Int_t events_count = 10)
 	// targetDecay->SetInteractionVolumeName("tubeD2");
 	targetDecay->SetInteractionVolumeName("targetSensVol");
 	// targetDecay->SetNuclearInteractionLength(63.);
-	targetDecay->SetNuclearInteractionLength(1000.);	//in cm
-	targetDecay->SetMaxPathLength(0.6);					//in cm
-	targetDecay->SetMinStep(1e-4);						//in cm
-	
+	targetDecay->SetNuclearInteractionLength(1000.); // in cm
+	targetDecay->SetMaxPathLength(0.6);				 // in cm
+	targetDecay->SetMinStep(1e-4);					 // in cm
+
 	// targetDecay->Set4nMass(massn4);
-	 targetDecay->Set8HeExcitation(0.0031, 0.0006, 1);
-	//  targetDecay->Set8HeExcitation(0.004, 0.002, 2);
+	targetDecay->Set8HeExcitation(0., 0., 1);
+	targetDecay->Set8HeExcitation(0.0031, 0.0006, 1);
+	targetDecay->Set8HeExcitation(0.006, 0.002, 2);
 	//  targetDecay->Set8HeExcitation(0.009, 0.00412, 1);
 
-	 targetDecay->Print8HeExcitation();
+	targetDecay->Print8HeExcitation();
 
-// return;
+	// return;
 
 	//  targetDecay->Set6LiExitation(0.017985, 0.003012, 1);
 	// targetDecay->Set6LiExitation(0.017985, 0.00001, 1);
@@ -292,7 +293,7 @@ void sim(Int_t events_count = 10)
 	// targetDecay->SetAngularDistribution("./sin_theta_cross.txt");
 	targetDecay->SetAngularDistribution("./sin_theta_cross_corrupted.txt");
 
-// return;
+	// return;
 
 	decayer->AddDecay(targetDecay);
 	run->SetDecayer(decayer);

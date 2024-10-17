@@ -42,9 +42,9 @@ void drawKinematics()
 	Double_t h = 1200;
 
 	// DrawBeam();
-	// DrawKin();
+	DrawKin();
 	// DrawDecay();
-	DrawDecayCM();
+	// DrawDecayCM();
 }
 
 void InitTree(TString inputFile)

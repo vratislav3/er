@@ -32,7 +32,8 @@
 #include "G4Neutron.hh"
 
 ERDecay8He4He4nTransfer::ERDecay8He4He4nTransfer() : ERDecay("8He4He4nTransfer"),
-													 fDecayFinish(kFALSE),
+													 fProcessFinished(kFALSE),
+													 fDecayOccured(kFALSE),
 													 fMinStep(0.01),
 													 fADInput(NULL),
 													 fADFunction(NULL)
@@ -116,6 +117,7 @@ void ERDecay8He4He4nTransfer::Set8HeExcitation(Double_t excMean, Double_t fwhm, 
 {
 	f8HeExcitationStateMeanEnergy.push_back(excMean);
 	f8HeExcitationStateSigma.push_back(fwhm / 2.355);
+
 	if (!fIs8HeExcitationSet)
 	{
 		f8HeExcitationStateWeight.push_back(distibWeight);
@@ -189,13 +191,13 @@ Bool_t ERDecay8He4He4nTransfer::Init()
 //-------------------------------------------------------------------------------------------------
 Bool_t ERDecay8He4He4nTransfer::Stepping()
 {
-	if (!fDecayFinish && gMC->TrackPid() == 1000020080 && TString(gMC->CurrentVolName()).Contains(GetInteractionVolumeName()))
+	if (!fProcessFinished && gMC->TrackPid() == 1000020080 && TString(gMC->CurrentVolName()).Contains(GetInteractionVolumeName()))
 	{
 		if (!fIsInterationPointFound)
 		{
 			if (!FindInteractionPoint())
 			{
-				fDecayFinish = kTRUE;
+				fProcessFinished = kTRUE;
 				return kTRUE;
 			}
 			else
@@ -271,7 +273,7 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 				if (reactionAttempsCounter > 1000)
 				{
 					LOG(DEBUG) << "[ERDecay8He4He4nTransfer::Stepping] Reaction is forbidden for this CM energy." << FairLogger::endl;
-					fDecayFinish = kTRUE;
+					fProcessFinished = kTRUE;
 					return kTRUE;
 				}
 			} // while
@@ -281,7 +283,8 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 			fLv4He->Boost(boost);
 
 			// 8He → 6He + n + n
-			if (!DecayPhaseGenerator(excitation))
+			DecayPhaseGenerator(excitation);
+			if (fDecayOccured && !excitation)
 			{
 				LOG(WARNING) << "[ERDecay8He4He4nTransfer::Stepping] 3-body decay did not occur!!" << FairLogger::endl;
 			}
@@ -289,7 +292,7 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 			PushTracks(curPos);
 
 			gMC->StopTrack();
-			fDecayFinish = kTRUE;
+			fProcessFinished = kTRUE;
 			// TODO: check why MaxStep is set to 100. here
 			gMC->SetMaxStep(100.);
 
@@ -314,7 +317,8 @@ Bool_t ERDecay8He4He4nTransfer::Stepping()
 //-------------------------------------------------------------------------------------------------
 void ERDecay8He4He4nTransfer::BeginEvent()
 {
-	fDecayFinish = kFALSE;
+	fProcessFinished = kFALSE;
+	fDecayOccured = kFALSE;
 	fIsInterationPointFound = kFALSE;
 
 	fLv8He->SetXYZM(0., 0., 0., 0.);
@@ -398,10 +402,18 @@ void ERDecay8He4He4nTransfer::ReactionPhaseGenerator(Double_t Ecm, Double_t mass
 }
 
 //-------------------------------------------------------------------------------------------------
-Bool_t ERDecay8He4He4nTransfer::DecayPhaseGenerator(const Double_t excitation)
+void ERDecay8He4He4nTransfer::DecayPhaseGenerator(const Double_t excitation)
 {
 	// if (fDecayFilePath == "")
 	// { // if decay file not defined, per morm decay using phase space
+
+	if (excitation == 0.)
+	{
+		LOG(DEBUG) << "[ERDecay8He4He4nTransfer::DecayPhaseGenerator] excitation of 8He is set to "
+				   << excitation * 1000. << " MeV: ground state apparently " << FairLogger::endl;
+		return;
+	}
+
 	LOG(DEBUG) << "[ERDecay8He4He4nTransfer::DecayPhaseGenerator] excitation of 8He is set to "
 			   << excitation * 1000. << " MeV" << FairLogger::endl;
 
@@ -422,7 +434,8 @@ Bool_t ERDecay8He4He4nTransfer::DecayPhaseGenerator(const Double_t excitation)
 					 << excitation * 1000. << " MeV < "
 					 << decayThreshold * 1000. - G4IonTable::GetIonTable()->GetIonMass(2, 8) << " MeV"
 					 << FairLogger::endl;
-		return kFALSE;
+		fDecayOccured = kFALSE;
+		return;
 	}
 
 	fDecayPhaseSpace->SetDecay(*fLv8He, 3, decayMasses);
@@ -451,7 +464,8 @@ Bool_t ERDecay8He4He4nTransfer::DecayPhaseGenerator(const Double_t excitation)
 	*fLvNN = *fLvn1CMdecay + *fLvn2CMdecay;
 	// Double_t epsilon = (fLvNN->E() - fLvNN->M())/fE_T;
 
-	return kTRUE;
+	fDecayOccured = kTRUE;
+	return;
 	// }
 	// else {
 	// 	return kFALSE;
@@ -606,7 +620,7 @@ void ERDecay8He4He4nTransfer::SetAngularDistribution(TString ADFile)
 	fADFunction = new TF1("angDistr", this, &ERDecay8He4He4nTransfer::ADEvaluate,
 						  fThetaMin, fThetaMax, 0, "ERDecay8He4He4nTransfer", "ADEvaluate");
 
-	// temporary workaround of errors
+	// FIXME: temporary workaround of errors
 	ROOT::Math::IntegratorOneDimOptions::SetDefaultIntegrator("Gauss");
 	fADFunction->GetRandom(fThetaMin, fThetaMax);
 	// ROOT::Math::IntegratorOneDimOptions::SetDefaultIntegrator("AdaptiveSingular");
@@ -625,7 +639,7 @@ void ERDecay8He4He4nTransfer::PushTracks(TLorentzVector currentPosition)
 	He8BeamTrackNb = gMC->GetStack()->GetCurrentTrackNumber();
 	LOG(DEBUG2) << "[ERDecay8He4He4nTransfer::Stepping] He8BeamTrackNb " << He8BeamTrackNb << FairLogger::endl;
 
-	//TODO: treat the different tracks for different scenarios
+	// TODO: treat the different tracks for different scenarios
 
 	// binary reaction
 	PushTrack(1, He8BeamTrackNb,
@@ -637,21 +651,23 @@ void ERDecay8He4He4nTransfer::PushTracks(TLorentzVector currentPosition)
 			  fLv4He, currentPosition, gMC->TrackTime(), He4TrackNb);
 
 	// decay
-	PushTrack(1, He8TrackNb,
-			  G4IonTable::GetIonTable()->GetNucleusEncoding(2, 6),
-			  //   G4IonTable::GetIonTable()->GetIon(2,6)->GetPDGEncoding(),
-			  //   1000020060,
-			  fLv6He, currentPosition, gMC->TrackTime(), He6TrackNb);
+	if (fDecayOccured)
+	{
+		PushTrack(1, He8TrackNb,
+				  G4IonTable::GetIonTable()->GetNucleusEncoding(2, 6),
+				  //   G4IonTable::GetIonTable()->GetIon(2,6)->GetPDGEncoding(),
+				  //   1000020060,
+				  fLv6He, currentPosition, gMC->TrackTime(), He6TrackNb);
 
-	PushTrack(1, He8TrackNb,
-			  TDatabasePDG::Instance()->GetParticle("neutron")->PdgCode(),
-			  fLvn1, currentPosition, gMC->TrackTime(), n1TrackNb);
+		PushTrack(1, He8TrackNb,
+				  TDatabasePDG::Instance()->GetParticle("neutron")->PdgCode(),
+				  fLvn1, currentPosition, gMC->TrackTime(), n1TrackNb);
 
-	PushTrack(1, He8TrackNb,
-			  G4Neutron::Neutron()->GetPDGEncoding(),
-			  //   TDatabasePDG::Instance()->GetParticle("neutron")->PdgCode(),
-			  fLvn2, currentPosition, gMC->TrackTime(), n2TrackNb);
-
+		PushTrack(1, He8TrackNb,
+				  G4Neutron::Neutron()->GetPDGEncoding(),
+				  //   TDatabasePDG::Instance()->GetParticle("neutron")->PdgCode(),
+				  fLvn2, currentPosition, gMC->TrackTime(), n2TrackNb);
+	}
 }
 
 //-------------------------------------------------------------------------------------------------
