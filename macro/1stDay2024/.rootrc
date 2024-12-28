@@ -1,0 +1,7 @@
+Gui.DefaultFont: 	-*-helvetica-medium-r-*-*-16-*-*-*-*-*-iso8859-1
+Gui.MenuFont: 		-*-helvetica-medium-r-*-*-16-*-*-*-*-*-iso8859-1
+Gui.MenuHiFont: 	-*-helvetica-bold-r-*-*-14-*-*-*-*-*-iso8859-1
+Gui.DocFixedFont: 	-*-courier-medium-r-*-*-14-*-*-*-*-*-iso8859-1
+Gui.DocPropFont: 	-*-helvetica-medium-r-*-*-14-*-*-*-*-*-iso8859-1
+Gui.IconFont: 		-*-helvetica-medium-r-*-*-26-*-*-*-*-*-iso8859-1
+Gui.StatusFont: 	-*-helvetica-medium-r-*-*-14-*-*-*-*-*-iso8859-1

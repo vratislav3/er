@@ -32,6 +32,7 @@ EREventHeader.cxx
 ERLi10EventHeader.cxx
 ERLi10MCEventHeader.cxx
 ERDecay8He4He4nTransferEventHeader.cxx
+ERDecay6He4He2nTransferEventHeader.cxx
 
 ERHe8EventHeader.cxx
 ERRawEvent.cxx

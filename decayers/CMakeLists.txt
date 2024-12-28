@@ -38,6 +38,7 @@ ERDecay10Heto8He.cxx
 ER10Heto8HeEventHeader.cxx
 # ERDecay8He4He4nTransferEventHeader.cxx
 ERDecay8He4He4nTransfer.cxx
+ERDecay6He4He2nTransfer.cxx
 )
 
 # fill list of header files from list of source files
